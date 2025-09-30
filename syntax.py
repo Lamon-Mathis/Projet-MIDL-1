@@ -181,7 +181,7 @@ def exq(v: str, f:Formula) -> Formula:
 #APPELS
 #=======================================================================
 
-g = QuantifF(All(),"x",QuantifF(Ex(),"y",ComparF("x",Lt(),"y")))
+"""g = QuantifF(All(),"x",QuantifF(Ex(),"y",ComparF("x",Lt(),"y")))
 print(g)
 
 f = allq("x",exq("y",ComparF("x",Lt(),"y")))
@@ -193,4 +193,11 @@ h = allq("x",
                 exq("u",
                 impl(conj(ltf("x", "y"), ltf("x", "z")),
                 conj(ltf("y", "u"), ltf("z", "u")) )))))
-print(h)
+print(h)"""
+
+f = conj(ConstF(True), ConstF(False))
+print(f)
+print(dual(f))
+
+dual(QuantifF(All(), "v", ConstF(True)))
+
