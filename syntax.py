@@ -148,6 +148,41 @@ def dual(f: Formula ) -> Formula :
     else:
         raise ValueError ("dual applied to quantified formula ")
     
+def pretraitement(f: Formula) -> Formula :
+    """
+    (a) ¬(z ≺ z 0 ) ↔ (z = z 0 ∨ z 0 ≺ z)
+    (b) ¬(z = z 0 ) ↔ (z ≺ z 0 ∨ z 0 ≺ z)    
+    """
+    if isinstance (f, ConstF ):
+        return f
+    
+    elif isinstance (f, ComparF ):
+        return f
+    
+    elif isinstance (f, NotF ):
+        
+        if isinstance (f.sub, BoolOpF ):
+            if f.sub.op is Lt :             #cas (a) ¬(z ≺ z 0 ) ↔ (z = z 0 ∨ z 0 ≺ z)
+                return BoolOpF (BoolOpF (f.sub.left,Eq(),f.sub.right),
+                                Disj(),
+                                BoolOpF (f.sub.right,Lt(),f.sub.left))
+            
+            elif f.sub.op is Eq :           #cas (b) ¬(z = z 0 ) ↔ (z ≺ z 0 ∨ z 0 ≺ z)  
+                return BoolOpF (BoolOpF (f.sub.left,Lt(),f.sub.right),
+                                Disj(),
+                                BoolOpF (f.sub.right,Lt(),f.sub.left))
+            
+            else :
+                return NotF(pretraitement(f.sub))
+    
+    elif isinstance (f, BoolOpF ):
+        return BoolOpF (pretraitement(f.left), f.op, pretraitement(f. right ))
+        
+    else:
+        raise ValueError ("pretraitement applied to quantified formula ")
+    
+    
+    
 #=======================================================================     
 #Abbreviations
 #=======================================================================
