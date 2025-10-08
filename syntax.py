@@ -119,10 +119,10 @@ def eval(f: Formula) -> bool:
             return (f.left != f.right)
         
     elif isinstance(f,NotF):
-        return (not(f.sub))
+        return not eval(f.sub)
     
     elif isinstance(f,BoolOpF) :
-        if isinstance(f.op,Conj()):
+        if isinstance(f.op,Conj):
             return (eval(f.left) and eval(f.right))
         else :
             return (eval(f.left) or eval(f.right))
@@ -159,24 +159,27 @@ def pretraitement(f: Formula) -> Formula :
     elif isinstance (f, ComparF ):
         return f
     
+    elif isinstance (f, BoolOpF ):
+        return BoolOpF (pretraitement(f.left), f.op, pretraitement(f. right ))
+    
     elif isinstance (f, NotF ):
         
-        if isinstance (f.sub, BoolOpF ):
-            if f.sub.op is Lt :             #cas (a) ¬(z ≺ z 0 ) ↔ (z = z 0 ∨ z 0 ≺ z)
-                return BoolOpF (BoolOpF (f.sub.left,Eq(),f.sub.right),
+        if isinstance (f.sub, ComparF ):
+            if isinstance(f.sub.op, Lt ) :             #cas (a) ¬(z ≺ z 0 ) ↔ (z = z 0 ∨ z 0 ≺ z)
+                return ComparF (ComparF (f.sub.left,Eq(),f  .sub.right),
                                 Disj(),
-                                BoolOpF (f.sub.right,Lt(),f.sub.left))
+                                ComparF (f.sub.right,Lt(),f.sub.left))
             
-            elif f.sub.op is Eq :           #cas (b) ¬(z = z 0 ) ↔ (z ≺ z 0 ∨ z 0 ≺ z)  
-                return BoolOpF (BoolOpF (f.sub.left,Lt(),f.sub.right),
+            elif isinstance(f.sub.op, Eq ) :           #cas (b) ¬(z = z 0 ) ↔ (z ≺ z 0 ∨ z 0 ≺ z)  
+                return ComparF (ComparF (f.sub.left,Lt(),f.sub.right),
                                 Disj(),
-                                BoolOpF (f.sub.right,Lt(),f.sub.left))
+                                ComparF (f.sub.right,Lt(),f.sub.left))
             
             else :
                 return NotF(pretraitement(f.sub))
-    
-    elif isinstance (f, BoolOpF ):
-        return BoolOpF (pretraitement(f.left), f.op, pretraitement(f. right ))
+            
+        else :
+                return NotF(pretraitement(f.sub))
         
     else:
         raise ValueError ("pretraitement applied to quantified formula ")
@@ -211,28 +214,3 @@ def allq(v: str, f:Formula) -> Formula:
 
 def exq(v: str, f:Formula) -> Formula:
     return(QuantifF(Ex(), v, f))
-
-#=======================================================================
-#APPELS
-#=======================================================================
-
-"""g = QuantifF(All(),"x",QuantifF(Ex(),"y",ComparF("x",Lt(),"y")))
-print(g)
-
-f = allq("x",exq("y",ComparF("x",Lt(),"y")))
-print(f)
-
-h = allq("x",
-        allq("y",
-            allq("z",
-                exq("u",
-                impl(conj(ltf("x", "y"), ltf("x", "z")),
-                conj(ltf("y", "u"), ltf("z", "u")) )))))
-print(h)"""
-
-f = conj(ConstF(True), ConstF(False))
-print(f)
-print(dual(f))
-
-dual(QuantifF(All(), "v", ConstF(True)))
-
