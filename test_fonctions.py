@@ -1,6 +1,10 @@
-# test_syntaxe.py
+# test_fonctions.py
 
+from fonctions import *
 from syntax import *
+
+"""
+La plus grande partie de ces test sont ecrit avec Copilot    """
 
 #======================================================================
 #   Tests de la fonction eval
