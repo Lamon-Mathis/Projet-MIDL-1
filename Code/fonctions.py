@@ -67,111 +67,43 @@ def pretraitement(f: Formula) -> Formula:
     4. Tirer les quantificateurs à l’intérieur des disjonctions
     """
     
-    # On se place aprés les quantificateurs
-    while isinstance(f,QuantifF) :
-        f = f.body
+    if isinstance(f, ConstF) or isinstance(f, ComparF) : # Cas d'arrêt
+        return f
     
-    if isinstance(f,NotF) :
+    elif isinstance(f, BoolOpF) : # Cas des opérateur
+        return BoolOpF(pretraitement(f.left),f.op,pretraitement(f.right))
+    
+    elif isinstance(f,NotF) : # Cas du not
         sub = f.sub
 
-        # Cas (1) et (2)
-        if isinstance(sub, BoolOpF):
-            if isinstance(sub.op, Conj):
-                return pretraitement(BoolOpF(NotF(sub.left), Disj(), NotF(sub.right)))
-            elif isinstance(sub.op, Disj):
-                return pretraitement(BoolOpF(NotF(sub.left), Conj(), NotF(sub.right)))
+        if isinstance(sub, NotF) :
+            return pretraitement(sub.sub)
+        
+        elif isinstance(sub, BoolOpF) :
+            if isinstance(sub.op, Conj) :
+                return BoolOpF(pretraitement(NotF(sub.left)), Disj(), pretraitement(NotF(sub.right)))
+            
+            elif isinstance(sub.op, Disj) :
+                return BoolOpF(pretraitement(NotF(sub.left)), Conj(), pretraitement(NotF(sub.right)))
 
-        # Cas (a) et (b)
-        elif isinstance(sub, ComparF):
-            if isinstance(sub.op, Lt):
+        elif isinstance(sub, ComparF) :
+            if isinstance(sub.op, Lt) :
                 return BoolOpF(
                     ComparF(sub.left, Eq(), sub.right),
                     Disj(),
                     ComparF(sub.right, Lt(), sub.left)
                 )
-            elif isinstance(sub.op, Eq):
+            elif isinstance(sub.op, Eq) :
                 return BoolOpF(
                     ComparF(sub.left, Lt(), sub.right),
                     Disj(),
                     ComparF(sub.right, Lt(), sub.left)
                 )
-
-        # Sinon, on continue à pousser la négation
-        return NotF(pretraitement(sub))
-        
-        
-        
+        else :
+            return f
+    
+    elif isinstance(f,QuantifF) : # On se place aprés les quantificateurs
+        return QuantifF(f.q,f.var,pretraitement(f.body))
+    
     else :
         return ValueError("Formule inconnue pour le prétraitement.")
-    
-    
-def pretraitementDeMerde(f: Formula) -> Formula:
-    """
-    Prétraitement d'une formule de la forme ∃x. φ :
-    1. Tirer les négations à l'intérieur (forme normale négative)
-    2. Éliminer les négations devant les relations :
-       (a) ¬(z ≺ z') ↔ (z = z' ∨ z' ≺ z)
-       (b) ¬(z = z') ↔ (z ≺ z' ∨ z' ≺ z)
-    3. Transformer en forme normale disjonctive
-    4. Tirer les quantificateurs à l’intérieur des disjonctions
-    """
-
-    # --- Cas atomiques ---
-    if isinstance(f, ConstF) or isinstance(f, ComparF):
-        return f
-
-    # --- Cas des connecteurs booléens ---
-    elif isinstance(f, BoolOpF):
-        left = pretraitement(f.left)
-        right = pretraitement(f.right)
-        return BoolOpF(left, f.op, right)
-
-    # --- Cas des négations ---
-    elif isinstance(f, NotF):
-        sub = f.sub
-
-        # Lois de De Morgan : ¬(φ ∧ ψ) ↦ (¬φ ∨ ¬ψ)
-        if isinstance(sub, BoolOpF):
-            if isinstance(sub.op, Conj):
-                return pretraitement(BoolOpF(NotF(sub.left), Disj(), NotF(sub.right)))
-            elif isinstance(sub.op, Disj):
-                return pretraitement(BoolOpF(NotF(sub.left), Conj(), NotF(sub.right)))
-
-        # Cas (a) et (b)
-        elif isinstance(sub, ComparF):
-            if isinstance(sub.op, Lt):
-                # ¬(z ≺ z') ↦ (z = z' ∨ z' ≺ z)
-                return BoolOpF(
-                    ComparF(sub.left, Eq(), sub.right),
-                    Disj(),
-                    ComparF(sub.right, Lt(), sub.left)
-                )
-            elif isinstance(sub.op, Eq):
-                # ¬(z = z') ↦ (z ≺ z' ∨ z' ≺ z)
-                return BoolOpF(
-                    ComparF(sub.left, Lt(), sub.right),
-                    Disj(),
-                    ComparF(sub.right, Lt(), sub.left)
-                )
-
-        # Sinon, on continue à pousser la négation
-        return NotF(pretraitement(sub))
-
-    # --- Cas d'une quantification existentielle ---q
-    elif isinstance(f, QuantifF):
-        # Appliquer le prétraitement à la sous-formule
-        inner = pretraitement(f.body)
-
-        # Étape 3 : si inner est une disjonction, tirer la quantification à l’intérieur
-        if isinstance(inner, BoolOpF) and isinstance(inner.op, Disj):
-            return BoolOpF(
-                exq(f.var, inner.left),
-                Disj(),
-                exq(f.var, inner.right)
-            )
-
-        return exq(f.var, inner)
-
-    else:
-        raise ValueError("Formule inconnue pour le prétraitement.")
-

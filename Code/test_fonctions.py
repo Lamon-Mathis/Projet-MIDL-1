@@ -3,130 +3,100 @@
 from fonctions import *
 from syntax import *
 
-"""
-La plus grande partie de ces test sont ecrit avec Copilot    """
+# Tests réécrits dans le format du premier test (avant / après / évaluation)
 
-#======================================================================
-#   Tests de la fonction eval
-#======================================================================
 print("\n________________ Début des tests eval ________________\n")
 
 # Test 1 : ¬(a < b) → (a = b ∨ b < a)
 f1 = NotF(ltf("a", "b"))
-print("Test 1 - Cas (a) avant :", f1)
-print("Test 1 - Cas (a) après :", pretraitement(f1))
-print("Test 1 - Évaluation :", eval(pretraitement(f1)))
+f1_apres = pretraitement(f1)
+print("Test 1 - Avant -> Après :", f1, "->", f1_apres)
+print("Test 1 - Évaluation :", eval(f1_apres))
 
 # Test 2 : ⊤ ∧ ⊥
 f2 = conj(ConstF(True), ConstF(False))
-print("Test 2 - Formule :", f2)
+print("Test 2 - Avant :", f2)
 print("Test 2 - Évaluation :", eval(f2))
 
 # Test 3 : (a = a) ∨ (a < b)
 f3 = disj(eqf("a", "a"), ltf("a", "b"))
-print("Test 3 - Formule :", f3)
+print("Test 3 - Avant :", f3)
 print("Test 3 - Évaluation :", eval(f3))
 
 # Test 4 : ¬(a = b) → (a < b ∨ b < a)
 f4 = NotF(eqf("a", "b"))
-print("Test 4 - Cas (b) avant :", f4)
-print("Test 4 - Cas (b) après :", pretraitement(f4))
-print("Test 4 - Évaluation :", eval(pretraitement(f4)))
+f4_apres = pretraitement(f4)
+print("Test 4 - Avant -> Après :", f4, "->", f4_apres)
+print("Test 4 - Évaluation :", eval(f4_apres))
 
 # Test 5 : ¬⊤
 f5 = NotF(ConstF(True))
-print("Test 5 - Formule :", f5)
+print("Test 5 - Avant :", f5)
 print("Test 5 - Évaluation :", eval(f5))
 
 
-#======================================================================
-#   Tests de la fonction dualOp
-#======================================================================
 print("\n________________ Début des tests dualOp ________________\n")
 
+# dualOp tests (format: avant -> après)
 op1 = Conj()
-print("dualOp(∧) :", op1, "-->", dualOp(op1))
+print("Test 6 - Avant -> Après :", op1, "->", dualOp(op1))
 
 op2 = Disj()
-print("dualOp(∨) :", op2, "-->", dualOp(op2))
+print("Test 7 - Avant -> Après :", op2, "->", dualOp(op2))
 
 
-#======================================================================
-#   Tests de la fonction dual
-#======================================================================
 print("\n________________ Début des tests dual ________________\n")
 
-# Cas 1 : ⊤
-f1 = ConstF(True)
-print("dual(⊤) :", f1, "-->", dual(f1))
+# dual tests (format: avant -> après)
+d1 = ConstF(True)
+print("Test 8 - Avant -> Après :", d1, "->", dual(d1))
 
-# Cas 2 : (a = b)
-f2 = eqf("a", "b")
-print("dual(a = b) :", f2, "-->", dual(f2))
+d2 = eqf("a", "b")
+print("Test 9 - Avant -> Après :", d2, "->", dual(d2))
 
-# Cas 3 : ¬(a < b)
-f3 = NotF(ltf("a", "b"))
-print("dual(¬(a < b)) :", f3, "-->", dual(f3))
+d3 = NotF(ltf("a", "b"))
+print("Test 10 - Avant -> Après :", d3, "->", dual(d3))
 
-# Cas 4 : (⊤ ∧ ⊥)
-f4 = conj(ConstF(True), ConstF(False))
-print("dual(⊤ ∧ ⊥) :", f4, "-->", dual(f4))
+d4 = conj(ConstF(True), ConstF(False))
+print("Test 11 - Avant -> Après :", d4, "->", dual(d4))
 
-# Cas 5 : ((a = b) ∨ (b < c))
-f5 = disj(eqf("a", "b"), ltf("b", "c"))
-print("dual((a = b) ∨ (b < c)) :", f5, "-->", dual(f5))
+d5 = disj(eqf("a", "b"), ltf("b", "c"))
+print("Test 12 - Avant -> Après :", d5, "->", dual(d5))
 
 
-#======================================================================
-#   Tests de la fonction pretraitement
-#======================================================================
 print("\n________________ Début des tests pretraitement ________________\n")
 
-# Cas (a) : ¬(a < b) ↔ (a = b ∨ b < a)
-f1 = NotF(ltf("a", "b"))
-print("Cas (a) :", f1, "-->", pretraitement(f1))
+# Prétraitement : afficher avant -> après
 
-# Cas (b) : ¬(c = d) ↔ (c < d ∨ d < c)
-f2 = NotF(eqf("c", "d"))
-print("Cas (b) :", f2, "-->", pretraitement(f2))
+p1 = NotF(ltf("a", "b"))
+print("Test 13 - Avant -> Après :", p1, "->", pretraitement(p1))
 
-# Cas imbriqué : ¬((e < f) ∧ (f < g)) → (¬(e < f) ∨ ¬(f < g))
-f3 = NotF(conj(ltf("e", "f"), ltf("f", "g")))
-print("Cas imbriqué :", f3, "-->", pretraitement(f3))
+p2 = NotF(eqf("c", "d"))
+print("Test 14 - Avant -> Après :", p2, "->", pretraitement(p2))
 
-# Cas mixte : ¬((h = i) ∨ (h < j)) → (¬(h = i) ∧ ¬(h < j))
-f4 = NotF(disj(eqf("h", "i"), ltf("h", "j")))
-print("Cas mixte :", f4, "-->", pretraitement(f4))
+p3 = NotF(conj(ltf("e", "f"), ltf("f", "g")))
+print("Test 15 - Avant -> Après :", p3, "->", pretraitement(p3))
 
-# Cas booléen simple sans négation (doit rester identique)
-f5 = conj(eqf("k", "l"), ltf("l", "m"))
-print("Cas simple :", f5, "-->", pretraitement(f5))
+p4 = NotF(disj(eqf("h", "i"), ltf("h", "j")))
+print("Test 16 - Avant -> Après :", p4, "->", pretraitement(p4))
 
-# --- Nouveaux cas ---
+p5 = conj(eqf("k", "l"), ltf("l", "m"))
+print("Test 17 - Avant -> Après :", p5, "->", pretraitement(p5))
 
-# Cas de négation imbriquée : ¬(¬(p < q)) → (p < q)
-f6 = NotF(NotF(ltf("p", "q")))
-print("Cas double négation :", f6, "-->", pretraitement(f6))
+# Nouveaux cas (mêmes exemples que précédemment)
+p6 = NotF(NotF(ltf("p", "q")))
+print("Test 18 - Avant -> Après :", p6, "->", pretraitement(p6))
 
-# Cas de quantification existentielle sur une relation atomique
-f7 = exq("x", ltf("x", "y"))
-print("Cas quantification simple :", f7, "-->", pretraitement(f7))
+p7 = exq("x", ltf("x", "y"))
+print("Test 19 - Avant -> Après :", p7, "->", pretraitement(p7))
 
-# Cas de quantification sur une disjonction : ∃x.((x < y) ∨ (y < z))
-# Doit devenir (∃x.(x < y)) ∨ (∃x.(y < z))
-f8 = exq("x", disj(ltf("x", "y"), ltf("y", "z")))
-print("Cas quantification sur disjonction :", f8, "-->", pretraitement(f8))
+p8 = exq("x", disj(ltf("x", "y"), ltf("y", "z")))
+print("Test 20 - Avant -> Après :", p8, "->", pretraitement(p8))
 
-# Cas de quantification sur une conjonction : ∃x.((x < y) ∧ (y = z))
-# Doit rester tel quel car la conjonction n'est pas une disjonction
-f9 = exq("x", conj(ltf("x", "y"), eqf("y", "z")))
-print("Cas quantification sur conjonction :", f9, "-->", pretraitement(f9))
+p9 = exq("x", conj(ltf("x", "y"), eqf("y", "z")))
+print("Test 21 - Avant -> Après :", p9, "->", pretraitement(p9))
 
-# Cas complexe : ∃x. ¬((x = y) ∧ (y < z))
-# Teste combinaison de quantification + négation + conjonction
-f10 = exq("x", NotF(conj(eqf("x", "y"), ltf("y", "z"))))
-print("Cas complexe mixte :", f10, "-->", pretraitement(f10))
+p10 = exq("x", NotF(conj(eqf("x", "y"), ltf("y", "z"))))
+print("Test 22 - Avant -> Après :", p10, "->", pretraitement(p10))
 
 print("\n________________ Fin des tests pretraitement ________________\n")
-
-
