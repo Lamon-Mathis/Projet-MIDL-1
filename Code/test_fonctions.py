@@ -90,15 +90,43 @@ print("Cas (a) :", f1, "-->", pretraitement(f1))
 f2 = NotF(eqf("c", "d"))
 print("Cas (b) :", f2, "-->", pretraitement(f2))
 
-# Cas imbriqué : ¬((e < f) ∧ (f < g))
+# Cas imbriqué : ¬((e < f) ∧ (f < g)) → (¬(e < f) ∨ ¬(f < g))
 f3 = NotF(conj(ltf("e", "f"), ltf("f", "g")))
 print("Cas imbriqué :", f3, "-->", pretraitement(f3))
 
-# Cas mixte : ¬((h = i) ∨ (h < j))
+# Cas mixte : ¬((h = i) ∨ (h < j)) → (¬(h = i) ∧ ¬(h < j))
 f4 = NotF(disj(eqf("h", "i"), ltf("h", "j")))
 print("Cas mixte :", f4, "-->", pretraitement(f4))
 
-# Cas booléen simple sans négation
+# Cas booléen simple sans négation (doit rester identique)
 f5 = conj(eqf("k", "l"), ltf("l", "m"))
 print("Cas simple :", f5, "-->", pretraitement(f5))
+
+# --- Nouveaux cas ---
+
+# Cas de négation imbriquée : ¬(¬(p < q)) → (p < q)
+f6 = NotF(NotF(ltf("p", "q")))
+print("Cas double négation :", f6, "-->", pretraitement(f6))
+
+# Cas de quantification existentielle sur une relation atomique
+f7 = exq("x", ltf("x", "y"))
+print("Cas quantification simple :", f7, "-->", pretraitement(f7))
+
+# Cas de quantification sur une disjonction : ∃x.((x < y) ∨ (y < z))
+# Doit devenir (∃x.(x < y)) ∨ (∃x.(y < z))
+f8 = exq("x", disj(ltf("x", "y"), ltf("y", "z")))
+print("Cas quantification sur disjonction :", f8, "-->", pretraitement(f8))
+
+# Cas de quantification sur une conjonction : ∃x.((x < y) ∧ (y = z))
+# Doit rester tel quel car la conjonction n'est pas une disjonction
+f9 = exq("x", conj(ltf("x", "y"), eqf("y", "z")))
+print("Cas quantification sur conjonction :", f9, "-->", pretraitement(f9))
+
+# Cas complexe : ∃x. ¬((x = y) ∧ (y < z))
+# Teste combinaison de quantification + négation + conjonction
+f10 = exq("x", NotF(conj(eqf("x", "y"), ltf("y", "z"))))
+print("Cas complexe mixte :", f10, "-->", pretraitement(f10))
+
+print("\n________________ Fin des tests pretraitement ________________\n")
+
 
