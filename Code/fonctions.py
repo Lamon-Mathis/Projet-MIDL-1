@@ -1,109 +1,107 @@
-# fonctions.py
-
+# ...existing code...
 from syntax import *
 
 #=======================================================================    
-# fonction evaluation
+# fonction str_list
 #=======================================================================
+# @brief cette fonction retourne une représentation en chaîne de caractères
+#   d'une formule logique.
+#   @param formula : Formula
+#   @param implication_mode : bool
+#   @return str
+def display_formula (formula: Formula, implication_mode: bool = True):
+    
+    if isinstance(formula, ConstF):
+        return "⊤" if formula.val else "⊥"
+    
+    if isinstance(formula, ComparF):
+        return f"({formula.left} {formula.op} {formula.right})"
+    
+    if isinstance(formula, NotF):
+        return "¬" + display_formula(formula.sub, implication_mode)
+    
+    if isinstance(formula, BoolOpF):
+        op = formula.op
+        elems = formula.elements
+        # detect implication pattern (or (not A) B)
+        if implication_mode and isinstance(op, Disj) and len(elems) == 2 and isinstance(elems[0], NotF):
+            return f"({display_formula(elems[0].sub, implication_mode)} → {display_formula(elems[1], implication_mode)})"
+        sep = " ∧ " if isinstance(op, Conj) else " ∨ "
+        return "( " + sep.join(display_formula(e, implication_mode) for e in elems) + " )"
+    
+    if isinstance(formula, QuantifF):
+        q = "∀" if isinstance(formula.q, All) else "∃"
+        return f"{q}{formula.var}.{display_formula(formula.body, implication_mode)}"
 
-def eval(f: Formula) -> bool:
-    if isinstance(f, ConstF ):
-        return f.val
-    
-    elif isinstance(f, ComparF ):
-        if f.op == Eq():
-            return (f.left == f.right)
-        else :
-            return (f.left != f.right)
-        
-    elif isinstance(f,NotF):
-        return not eval(f.sub)
-    
-    elif isinstance(f,BoolOpF) :
-        if isinstance(f.op,Conj):
-            return (eval(f.left) and eval(f.right))
-        else :
-            return (eval(f.left) or eval(f.right))
-    
-    else :
-        raise ValueError("Formule Quantifiée")
+    raise ValueError("type of formula is not recognized")
 
 #=======================================================================    
 # fonction dualOp et dual
 #=======================================================================
-
-def dualOp (op: BoolOp ) -> BoolOp :
-    if isinstance (op , Conj ):
-        return (Disj ())
-    else:
-        return (Conj ())
+# @brief cette fonction retourne la formule obtenue en remplaçant
+#   toutes les conjonctions par des disjonctions et réciproquement,
+#
+#   @param formula : Formula
+#   @return Formula
+#   @raise ValueError type of formula is not allowed
+def dualOp (formula: Formula):
     
-def dual(f: Formula ) -> Formula :
-    if isinstance (f, ConstF ):
-        return f
-    elif isinstance (f, ComparF ):
-        return f
-    elif isinstance (f, NotF ):
-        return NotF(dual(f.sub ))
-    elif isinstance (f, BoolOpF ):
-        return BoolOpF (dual(f.left), dualOp (f.op), dual(f. right ))
-    else:
-        raise ValueError ("dual applied to quantified formula ")
-
-#=======================================================================    
-# fonction pretraitement
-#=======================================================================
-
-def pretraitement(f: Formula) -> Formula:
-    """
-    Prétraitement d'une formule de la forme ∃x. φ :
-    1. Tirer les négations à l'intérieur (forme normale négative)
-        (1) ¬ a ^ b ↔ ¬a ∨ ¬b
-        (2) ¬ a ∨ b ↔ ¬a ^ ¬b
-    2. Éliminer les négations devant les relations :
-       (a) ¬(z ≺ z') ↔ (z = z' ∨ z' ≺ z)
-       (b) ¬(z = z') ↔ (z ≺ z' ∨ z' ≺ z)
-    3. Transformer en forme normale disjonctive
-    4. Tirer les quantificateurs à l’intérieur des disjonctions
-    """
+    if isinstance(formula, BoolOpF):
+        new_op = Disj() if isinstance(formula.op, Conj) else Conj()
+        return BoolOpF(new_op, formula.elements)
     
-    if isinstance(f, ConstF) or isinstance(f, ComparF) : # Cas d'arrêt
-        return f
-    
-    elif isinstance(f, BoolOpF) : # Cas des opérateur
-        return BoolOpF(pretraitement(f.left),f.op,pretraitement(f.right))
-    
-    elif isinstance(f,NotF) : # Cas du not
-        sub = f.sub
+    raise ValueError("type of formula is not allowed")
 
-        if isinstance(sub, NotF) :
-            return pretraitement(sub.sub)
-        
-        elif isinstance(sub, BoolOpF) :
-            if isinstance(sub.op, Conj) :
-                return BoolOpF(pretraitement(NotF(sub.left)), Disj(), pretraitement(NotF(sub.right)))
-            
-            elif isinstance(sub.op, Disj) :
-                return BoolOpF(pretraitement(NotF(sub.left)), Conj(), pretraitement(NotF(sub.right)))
+# @brief cette fonction retourne la formule duale de la formule donnée
+#   en remplaçant toutes les conjonctions par des disjonctions et réciproquement,
+#   et en remplaçant chaque sous-formule par sa duale.
+#   @param formula : Formula
+#   @return Formula
+#   @raise ValueError Formula with quantifiers is not allowed 
+def dual(formula : Formula | tuple ):
 
-        elif isinstance(sub, ComparF) :
-            if isinstance(sub.op, Lt) :
-                return BoolOpF(
-                    ComparF(sub.left, Eq(), sub.right),
-                    Disj(),
-                    ComparF(sub.right, Lt(), sub.left)
-                )
-            elif isinstance(sub.op, Eq) :
-                return BoolOpF(
-                    ComparF(sub.left, Lt(), sub.right),
-                    Disj(),
-                    ComparF(sub.right, Lt(), sub.left)
-                )
-        else :
-            return f
+    if isinstance(formula, (ConstF, ComparF)):
+        return formula
     
-    elif isinstance(f,QuantifF) : # On se place aprés les quantificateurs
-        return QuantifF(f.q,f.var,pretraitement(f.body))
+    elif isinstance(formula, NotF):
+        return NotF(dual(formula.sub))
+    
+    elif isinstance(formula, BoolOpF):
+        new_op = Disj() if isinstance(formula.op, Conj) else Conj()
+        return BoolOpF(new_op, [dual(e) for e in formula.elements])
     
     else :
-        return ValueError("Formule inconnue pour le prétraitement.")
+        raise ValueError("Formule with quantifiers not allowed")
+
+#=======================================================================    
+# fonction eval
+#=======================================================================
+# @brief cette fonction evalu une une formule sans quantificateurs (attention aux comparaisons)
+#   @param f : Formula
+#   @return bool
+#   @raise ValueError Formula with quantifiers is not allowed
+def eval(formula: Formula) -> bool:
+    
+    if isinstance(formula, ConstF ):
+        return formula.val
+    
+    elif isinstance(formula, ComparF ):
+        
+        if isinstance(formula.op, Eq):
+            return (formula.left == formula.right)
+        else:
+            return (formula.left < formula.right)
+        
+    elif isinstance(formula, NotF):
+        return (not eval(formula.sub))
+    
+    elif isinstance(formula, BoolOpF) :
+        
+        if isinstance(formula.op, Conj): #conseil de la partie B2
+            return all(eval(e) for e in formula.elements)
+        
+        else:
+            return any(eval(e) for e in formula.elements)
+    
+    else :
+        raise ValueError("Formula with quantifiers is not allowed")

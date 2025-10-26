@@ -1,10 +1,10 @@
-# syntax.py
+# Syntax definition of formulas 
 
 from dataclasses import dataclass
 from collections.abc import Callable
-#=======================================================================
-# Comparison operators
+from typing import List
 
+# Comparison operators
 class ComparOp:
     pass
     
@@ -18,9 +18,7 @@ class Lt(ComparOp):
     def __str__(self):
         return "<"
 
-#=======================================================================
 # Boolean operators
-
 class BoolOp:
     pass
 
@@ -34,9 +32,8 @@ class Disj(BoolOp):
     def __str__(self):
         return "∨"
 
-#=======================================================================
-# Quantifiers
 
+# Quantifiers
 class Quantif:
     pass
 
@@ -49,8 +46,7 @@ class All(Quantif):
 class Ex(Quantif):
     def __str__(self):
         return "∃"
-    
-#=======================================================================
+
 # Formulas
 
 class Formula:
@@ -60,15 +56,9 @@ class Formula:
 class ConstF(Formula):
     val: bool
     def __str__(self):
-        if self.val:
-            return "⊤"
-        else:
-            return "⊥"
-        
-#=======================================================================
-# Variable (atomic proposition or predicate variable)
-#=======================================================================
+        return "⊤" if self.val else "⊥"
 
+# Variable (atomic proposition or predicate variable)
 @dataclass(frozen=True)
 class ComparF(Formula):
     left: str
@@ -77,10 +67,7 @@ class ComparF(Formula):
     def __str__(self):
         return f"({self.left} {self.op} {self.right})"
 
-#=======================================================================
 # Logical connectives
-#=======================================================================
-
 @dataclass(frozen=True)
 class NotF(Formula):
     sub: Formula
@@ -89,11 +76,11 @@ class NotF(Formula):
 
 @dataclass(frozen=True)
 class BoolOpF(Formula):
-    left: Formula
     op: BoolOp
-    right: Formula
+    elements: List[Formula]
     def __str__(self):
-        return f"({self.left} {self.op} {self.right})"
+        sep = f" {self.op} "
+        return "(" + sep.join(str(e) for e in self.elements) + ")"
 
 @dataclass(frozen=True)
 class QuantifF(Formula):
@@ -103,27 +90,25 @@ class QuantifF(Formula):
     def __str__(self):
         return f"{self.q}{self.var}.({self.body})"
     
-#=======================================================================     
-#Abbreviations
-#=======================================================================
-
+# Some abbreviations
 def eqf(x:str, y:str) -> ComparF:
-    return(ComparF(x, Eq(), y))
+    return ComparF(x, Eq(), y)
 
 def ltf(x:str, y:str) -> ComparF:
-    return(ComparF(x, Lt(), y))
+    return ComparF(x, Lt(), y)
 
 def conj(x:Formula, y:Formula) -> Formula:
-    return(BoolOpF(x, Conj(), y))
+    return BoolOpF(Conj(), [x, y])
 
 def disj(x:Formula, y:Formula) -> Formula:
-    return(BoolOpF(x, Disj(), y))
+    return BoolOpF(Disj(), [x, y])
 
 def impl(x: Formula, y: Formula):
-    return(disj(NotF(x), y))
+    return disj(NotF(x), y)
 
+# cannot simply be called "all" because of Python keywords
 def allq(v: str, f:Formula) -> Formula:
-    return(QuantifF(All(), v, f))
+    return QuantifF(All(), v, f)
 
 def exq(v: str, f:Formula) -> Formula:
-    return(QuantifF(Ex(), v, f))
+    return QuantifF(Ex(), v, f)
