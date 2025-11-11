@@ -105,3 +105,79 @@ def eval(formula: Formula) -> bool:
     
     else :
         raise ValueError("Formula with quantifiers is not allowed")
+
+
+#=======================================================================
+# fonction nnf
+#=======================================================================
+# @brief transforme une formule en forme normale négative (NNF)
+# c’est-à-dire que les négations ne portent que sur des formules atomiques.
+#=======================================================================
+def nnf(formula: Formula) -> Formula:
+    if isinstance(formula, (ConstF, ComparF)):
+        return formula
+
+    elif isinstance(formula, NotF):
+        sub = formula.sub
+        if isinstance(sub, ConstF):
+            return ConstF(not sub.val)
+        elif isinstance(sub, ComparF):
+            return formula 
+        elif isinstance(sub, NotF):
+            return nnf(sub.sub)
+        elif isinstance(sub, BoolOpF):
+            new_op = Conj() if isinstance(sub.op, Disj) else Disj()
+            new_elements = [nnf(NotF(e)) for e in sub.elements]
+            return BoolOpF(new_op, new_elements)
+        else:
+            raise ValueError("Formule avec quantificateurs non supportée pour nnf")
+
+    elif isinstance(formula, BoolOpF):
+        return BoolOpF(formula.op, [nnf(e) for e in formula.elements])
+
+    else:
+        raise ValueError("Formule avec quantificateurs non supportée pour nnf")
+
+#=======================================================================
+# fonction dnf
+#=======================================================================
+# @brief transforme une formule en forme normale disjonctive (DNF)
+# c’est-à-dire une disjonction de conjonctions de littéraux.
+#=======================================================================
+def dnf(formula: Formula) -> Formula:
+    # on commence par mettre en forme normale négative
+    formula = nnf(formula)
+
+    # fonction auxiliaire : distribue ∧ sur ∨
+    def distrib(f1: Formula, f2: Formula) -> Formula:
+        if isinstance(f1, BoolOpF) and isinstance(f1.op, Disj):
+            return BoolOpF(Disj(), [distrib(e, f2) for e in f1.elements])
+        elif isinstance(f2, BoolOpF) and isinstance(f2.op, Disj):
+            return BoolOpF(Disj(), [distrib(f1, e) for e in f2.elements])
+        else:
+            return BoolOpF(Conj(), [f1, f2])
+
+    if isinstance(formula, (ConstF, ComparF, NotF)):
+        return formula
+
+    elif isinstance(formula, BoolOpF):
+        elems = [dnf(e) for e in formula.elements]
+        if isinstance(formula.op, Disj):
+            # a ∨ b ∨ c ...
+            flat = []
+            for e in elems:
+                if isinstance(e, BoolOpF) and isinstance(e.op, Disj):
+                    flat.extend(e.elements)
+                else:
+                    flat.append(e)
+            return BoolOpF(Disj(), flat)
+        elif isinstance(formula.op, Conj):
+            # distribuer sur les disjonctions
+            result = elems[0]
+            for e in elems[1:]:
+                result = distrib(result, e)
+            return result
+    else:
+        raise ValueError("Formule avec quantificateurs non supportée pour dnf")
+
+
