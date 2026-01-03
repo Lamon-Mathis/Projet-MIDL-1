@@ -212,52 +212,66 @@ def is_literal(f: Formula) -> bool:
 
 def remove_forall(f: Formula) -> Formula:
     """Convertit ∀x.P en ¬(∃x.¬P)."""
+    
     if isinstance(f, QuantifF):
         if isinstance(f.q, All):
-            # ∀x.P -> ¬∃x.¬P
-            return NotF(exq(f.var, NotF(remove_forall(f.body))))
+            recurse_body = remove_forall(f.body)
+            return NotF(QuantifF(Ex(), f.var, NotF(recurse_body)))
         else:
             return QuantifF(f.q, f.var, remove_forall(f.body))
+            
     elif isinstance(f, BoolOpF):
-        return BoolOpF(remove_forall(f.left), f.op, remove_forall(f.right))
+        return BoolOpF(f.op, [remove_forall(e) for e in f.elements])
+        
     elif isinstance(f, NotF):
         return NotF(remove_forall(f.sub))
+        
     return f
 
 def push_negation(f: Formula) -> Formula:
-    """Pousse les négations vers les feuilles et élimine les négations de relations [cite: 266-268]."""
+    """
+    Pousse les négations vers les feuilles et élimine les négations de relations.
+    Compatible avec la syntaxe définissant BoolOpF avec une liste 'elements'.
+    """
+    # Gestion des négations
     if isinstance(f, NotF):
         sub = f.sub
+
         if isinstance(sub, ConstF):
             return ConstF(not sub.val)
+            
         elif isinstance(sub, NotF):
-            return push_negation(sub.sub) # Double négation
+            return push_negation(sub.sub)
+            
         elif isinstance(sub, BoolOpF):
-            # De Morgan
-            if isinstance(sub.op, Conj):
-                return disj(push_negation(NotF(sub.left)), push_negation(NotF(sub.right)))
-            else: # Disj
-                return conj(push_negation(NotF(sub.left)), push_negation(NotF(sub.right)))
-        elif isinstance(sub, QuantifF):
-            # ¬∃x.P -> ∀x.¬P (mais on a déjà supprimé les ∀, donc on garde ¬∃)
-            # Ici, l'algorithme demande de traiter l'élimination "de l'intérieur".
-            # On laisse la négation devant le quantifieur pour l'instant, 
-            # elle sera traitée quand on éliminera le quantifieur.
-            return f 
+            new_op = Disj() if isinstance(sub.op, Conj) else Conj()
+            
+            new_elements = [push_negation(NotF(e)) for e in sub.elements]
+            
+            return BoolOpF(new_op, new_elements)
+            
         elif isinstance(sub, ComparF):
-            # ¬(x < y) -> y < x ∨ x = y 
-            # ¬(x = y) -> x < y ∨ y < x [cite: 269]
-            x, y = sub.left, sub.right
+            x = sub.left
+            y = sub.right
+            
             if isinstance(sub.op, Lt):
                 return disj(ltf(y, x), eqf(x, y))
+                
             elif isinstance(sub.op, Eq):
                 return disj(ltf(x, y), ltf(y, x))
-    
+        
+        elif isinstance(sub, QuantifF):
+            new_q = All() if isinstance(sub.q, Ex) else Ex()
+            return QuantifF(new_q, sub.var, push_negation(NotF(sub.body)))
+
+    # Gestion des BoolOpF et QuantifF
     elif isinstance(f, BoolOpF):
-        return BoolOpF(push_negation(f.left), f.op, push_negation(f.right))
+        return BoolOpF(f.op, [push_negation(e) for e in f.elements])
+        
     elif isinstance(f, QuantifF):
         return QuantifF(f.q, f.var, push_negation(f.body))
-    
+
+    # Cas de base (Const, Compar)
     return f
 
 def to_dnf_list(f: Formula) -> list[list[Formula]]:
