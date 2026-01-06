@@ -1,105 +1,120 @@
-# test_fonctions.py
+# test_fonctions_new.py
 
 from fonctions import *
 from syntax import *
 
 #=======================================================================
-# Tests de dualOp
+# 0. Tests de remove_forall (Pré-traitement)
 #=======================================================================
-list_formula = [
-    BoolOpF(Conj(), [ltf("a","b"), eqf("c","d")]),
-    BoolOpF(Disj(), [eqf("x","y"), ltf("y","z"), eqf("z","x")]),
-    BoolOpF(Conj(), [BoolOpF(Conj(), [ltf("p","q"), eqf("q","r")]), ltf("r","s")]),
-    eqf("a","b"),
-    allq("x", eqf("x","x"))
+list_forall = [
+    allq("x", ltf("x", "y")),                       # ∀x. x < y
+    allq("x", allq("y", eqf("x", "y"))),            # ∀x.∀y. x = y
+    BoolOpF(Conj(), [allq("z", ltf("z","a")), eqf("a","b")]), # (∀z. z < a) ∧ a = b
+    NotF(allq("x", ltf("x", "0")))                  # ¬∀x. x < 0
 ]
 
-print("\n________________ Tests dualOp ________________\n")
-for i in range(len(list_formula)):
-    formula = list_formula[i]
+print("\n________________ Tests remove_forall (Etape 0) ________________\n")
+for i in range(len(list_forall)):
+    formula = list_forall[i]
     print("TEST "+ str(i+1))
     try:
         print("Avant : " + display_formula(formula))
-        print("Après : " + display_formula(dualOp(formula))+"\n")
+        print("Après : " + display_formula(remove_forall(formula))+"\n")
     except Exception as e:
-        
-        print("Test dualOp - Attendu ERREUR :", e,"\n")
+        print("Test remove_forall - Attendu ERREUR :", e,"\n")
 
 #=======================================================================
-# Tests de dual
+# 1 & 2. Tests de push_negation (NNF + Négation Relations)
 #=======================================================================
+# On teste ici la descente des négations ET la transformation des relations
+# ¬(x < y) devient (y < x ∨ x = y)
+# ¬(x = y) devient (x < y ∨ y < x)
+list_neg = [
+    NotF(ltf("x", "y")),                            # ¬(x < y)
+    NotF(eqf("a", "b")),                            # ¬(a = b)
+    NotF(BoolOpF(Conj(), [ltf("x","a"), ltf("b","x")])), # ¬(x < a ∧ b < x) (De Morgan)
+    NotF(NotF(ltf("x", "y"))),                      # ¬¬(x < y)
+    push_negation(NotF(allq("x", ltf("x","y"))))    # Test sur un quantificateur inversé
+]
 
-print("\n________________ Tests dual ________________\n")
-for i in range(len(list_formula)):
-    formula = list_formula[i]
+print("\n________________ Tests push_negation (Etape 1 & 2) ________________\n")
+for i in range(len(list_neg)):
+    formula = list_neg[i]
     print("TEST "+ str(i+1))
     try:
         print("Avant : " + display_formula(formula))
-        print("Après : " + display_formula(dual(formula))+"\n")
+        print("Après : " + display_formula(push_negation(formula))+"\n")
     except Exception as e:
-        
-        print("Test dual - Attendu ERREUR :", e,"\n")
+        print("Test push_negation - Attendu ERREUR :", e,"\n")
 
 #=======================================================================
-# Tests de eval
+# 3. Tests de to_dnf_list (Mise en DNF structurelle)
 #=======================================================================
-list_formula = [
-    ConstF(True),
-    eqf("a","a"),
-    eqf("a","b"),
-    BoolOpF(Conj(), [ltf("a","b"), eqf("a","a")]),
-    BoolOpF(Disj(), [eqf("p","q"), ltf("m","n")]),
-    allq("x", ltf("x","y")),
+# Note : Ces formules doivent déjà être en NNF (pas de Not devant des parents)
+list_dnf = [
+    BoolOpF(Conj(), [                               # (A ∨ B) ∧ C
+        BoolOpF(Disj(), [ltf("x","a"), eqf("x","b")]), 
+        ltf("c","d")
+    ]),
+    BoolOpF(Conj(), [                               # (A ∨ B) ∧ (C ∨ D) -> Distrib
+        BoolOpF(Disj(), [ltf("u","v"), eqf("u","v")]), 
+        BoolOpF(Disj(), [ltf("x","y"), eqf("x","y")])
+    ])
 ]
 
-print("\n________________ Tests eval ________________\n")
-for i in range(len(list_formula)):
-    formula = list_formula[i]
+print("\n________________ Tests to_dnf_list (Etape 3) ________________\n")
+for i in range(len(list_dnf)):
+    formula = list_dnf[i]
     print("TEST "+ str(i+1))
     try:
         print("Formule : " + display_formula(formula))
-        print("Évaluation : " + str(eval(formula))+"\n")
-    except Exception as e:
         
-        print("Test eval - Attendu ERREUR :", e,"\n")
+        # Appel de la fonction
+        res_list = to_dnf_list(formula)
+        
+        # Formatage manuel pour l'affichage (car c'est une liste de listes)
+        str_res = " ∨ ".join([
+            "(" + " ∧ ".join([display_formula(f) for f in clause]) + ")" 
+            for clause in res_list
+        ])
+        print("DNF Liste : " + str_res + "\n")
+        
+    except Exception as e:
+        print("Test to_dnf_list - Attendu ERREUR :", e,"\n")
 
-print("\n________________ Tests nnf et dnf ________________\n")
-A = ComparF("A", Eq(), "B")
-B = ComparF("B", Lt(), "C")
+#=======================================================================
+# 4. Tests de process_formula (Résolution / Elimination complète)
+#=======================================================================
+# C'est ici qu'on teste si l'élimination des quantificateurs fonctionne
+list_process = [
+    # Cas 1 : Densité -> ∃x. (a < x ∧ x < b)  => a < b
+    exq("x", BoolOpF(Conj(), [ltf("a", "x"), ltf("x", "b")])),
+    
+    # Cas 2 : Égalité -> ∃x. (x = z ∧ x < b) => z < b
+    exq("x", BoolOpF(Conj(), [eqf("x", "z"), ltf("x", "b")])),
+    
+    # Cas 3 : Contradiction -> ∃x. (x < x) => ⊥
+    exq("x", ltf("x", "x")),
+    
+    # Cas 4 : Unbounded -> ∃x. (a < x) => ⊤ (car dense sans fin)
+    exq("x", ltf("a", "x")),
+    
+    # Cas 5 : Complexe avec OU -> ∃x. ((x=a) ∨ (x < b ∧ b < x))
+    exq("x", BoolOpF(Disj(), [
+        eqf("x", "a"), 
+        BoolOpF(Conj(), [ltf("x", "b"), ltf("b", "x")])
+    ]))
+]
 
-# Formules composées
-f1 = NotF(NotF(A))                      # ¬(¬A)
-f2 = NotF(BoolOpF(Conj(), [A, B]))     # ¬(A ∧ B)
-f3 = BoolOpF(Disj(), [A, NotF(B)])     # A ∨ ¬B
-f4 = BoolOpF(Conj(), [A, f3])          # A ∧ (A ∨ ¬B)
-
-print("\n===== TEST NNF =====")
-print("f1 =", display_formula(f1), "→", display_formula(nnf(f1)))
-print("f2 =", display_formula(f2), "→", display_formula(nnf(f2)))
-print("f3 =", display_formula(f3), "→", display_formula(nnf(f3)))
-print("f4 =", display_formula(f4), "→", display_formula(nnf(f4)))
-
-# print("\n===== TEST DNF =====")
-# print("f1 =", display_formula(f1), "→", display_formula(dnf(f1)))
-# print("f2 =", display_formula(f2), "→", display_formula(dnf(f2)))
-# print("f3 =", display_formula(f3), "→", display_formula(dnf(f3)))
-# print("f4 =", display_formula(f4), "→", display_formula(dnf(f4)))
-
-print("\n===== TEST PUSH NEGATE =====")
-print("f1 =", display_formula(f1), "→", display_formula(push_negation(f1)))
-print("f2 =", display_formula(f2), "→", display_formula(push_negation(f2)))
-print("f3 =", display_formula(f3), "→", display_formula(push_negation(f3)))
-print("f4 =", display_formula(f4), "→", display_formula(push_negation(f4)))
-
-f1 = allq("x", eqf("x", "y"))
-f2 = allq("x", allq("y", ltf("x", "y")))
-f3 = exq("x", allq("y", eqf("x", "y")))
-f4 = disj(eqf("A", "B"), allq("z", eqf("z", "A")))
-
-print("\n===== TEST REMOVE FORALL =====")
-print("f1 :", display_formula(f1),"→",display_formula(remove_forall(f1)))
-print("f3 :", display_formula(f3),"→",display_formula(remove_forall(f3)))
-print("f2 :", display_formula(f2),"→",display_formula(remove_forall(f2)))
-print("f4 :", display_formula(f4),"→",display_formula(remove_forall(f4)))
+print("\n________________ Tests process_formula (Etape 4 - Final) ________________\n")
+for i in range(len(list_process)):
+    formula = list_process[i]
+    print("TEST "+ str(i+1))
+    try:
+        print("Entrée : " + display_formula(formula))
+        res = process_formula(formula)
+        print("Sortie (Sans ∃) : " + display_formula(res) + "\n")
+    except Exception as e:
+        print("Test process_formula - Attendu ERREUR :", e,"\n")
 
 print("\n________________ Fin des tests ________________\n")
