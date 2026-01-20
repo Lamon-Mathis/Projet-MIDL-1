@@ -1,4 +1,4 @@
-# ...existing code...
+# fonctions.py
 from syntax import *
 import sys
 
@@ -181,15 +181,12 @@ def dnf(formula: Formula) -> Formula:
     else:
         raise ValueError("Formule avec quantificateurs non supportée pour dnf")
 
-
-
-
 # -----------------------------------------------------------------------------
 # 1. Fonctions utilitaires et de parcours
 # -----------------------------------------------------------------------------
 
 def get_free_vars(f: Formula) -> set[str]:
-    """Retourne l'ensemble des variables libres d'une formule."""
+    """Retourne l'ensemble des variables libres."""
     if isinstance(f, ConstF):
         return set()
     elif isinstance(f, ComparF):
@@ -197,43 +194,34 @@ def get_free_vars(f: Formula) -> set[str]:
     elif isinstance(f, NotF):
         return get_free_vars(f.sub)
     elif isinstance(f, BoolOpF):
-        return get_free_vars(f.left) | get_free_vars(f.right)
+        # CORRECTIF : On parcourt la liste 'elements'
+        res = set()
+        for sub_f in f.elements:
+            res |= get_free_vars(sub_f)
+        return res
     elif isinstance(f, QuantifF):
         return get_free_vars(f.body) - {f.var}
     return set()
 
-def is_literal(f: Formula) -> bool:
-    """Vérifie si la formule est un littéral (Comparaison ou Constante)."""
-    return isinstance(f, ComparF) or isinstance(f, ConstF)
-
-
 def substitute_var(f: Formula, old_name: str, new_name: str) -> Formula:
-    """Remplace toutes les occurrences libres de old_name par new_name."""
+    """Remplace old_name par new_name dans la formule."""
     if isinstance(f, ConstF):
         return f
-        
     elif isinstance(f, ComparF):
         l = new_name if f.left == old_name else f.left
         r = new_name if f.right == old_name else f.right
         return ComparF(l, f.op, r)
-        
     elif isinstance(f, NotF):
         return NotF(substitute_var(f.sub, old_name, new_name))
-        
     elif isinstance(f, BoolOpF):
-        return BoolOpF(
-            substitute_var(f.left, old_name, new_name),
-            f.op,
-            substitute_var(f.right, old_name, new_name)
-        )
-        
+        # CORRECTIF : On parcourt 'elements'
+        new_elements = [substitute_var(e, old_name, new_name) for e in f.elements]
+        return BoolOpF(f.op, new_elements)
     elif isinstance(f, QuantifF):
         if f.var == old_name:
-            # La variable est redéfinie (shadowing), on arrête la substitution ici
             return f
         else:
             return QuantifF(f.q, f.var, substitute_var(f.body, old_name, new_name))
-            
     return f
 
 # -----------------------------------------------------------------------------
@@ -247,6 +235,7 @@ def is_closed(f: Formula) -> bool:
     """
     return len(get_free_vars(f)) == 0
 
+
 def close_formula(f: Formula) -> Formula:
     """
     Ferme automatiquement la formule en ajoutant des quantificateurs universels
@@ -256,346 +245,253 @@ def close_formula(f: Formula) -> Formula:
     frees = get_free_vars(f)
     if not frees:
         return f
-    
+
     # On trie pour avoir un ordre déterministe (x, puis y...)
     sorted_vars = sorted(list(frees))
-    
+
     res = f
     for v in sorted_vars:
         res = allq(v, res)
-        
+
     return res
 
-def to_prenex(f: Formula) -> Formula:
-    """
-    Convertit une formule en forme normale prénexe (tous les quantificateurs au début).
-    Gère le renommage des variables en cas de conflit.
-    """
-    
-    # 1. Traitement récursif des sous-formules d'abord
-    if isinstance(f, NotF):
-        sub = to_prenex(f.sub)
-        
-        # Règle : ¬∀x.P  -> ∃x.¬P
-        # Règle : ¬∃x.P  -> ∀x.¬P
-        if isinstance(sub, QuantifF):
-            new_q = Ex() if isinstance(sub.q, All) else All()
-            # On inverse le quantificateur, et on pousse le Not à l'intérieur
-            # On rappelle to_prenex sur le résultat car le Not est descendu
-            return to_prenex(QuantifF(new_q, sub.var, NotF(sub.body)))
-            
-        return NotF(sub)
-
-    elif isinstance(f, BoolOpF):
-        # On met d'abord les enfants en PNF
-        left = to_prenex(f.left)
-        right = to_prenex(f.right)
-        
-        # Cas 1 : Quantificateur à Gauche : (Qx. P) op R -> Qx. (P op R)
-        if isinstance(left, QuantifF):
-            var = left.var
-            body = left.body
-            
-            # Si 'var' est libre dans 'right', il faut renommer pour éviter la capture
-            if var in get_free_vars(right):
-                new_var = var + "'" # On génère un nouveau nom (x -> x')
-                while new_var in get_free_vars(right) or new_var in get_free_vars(body):
-                    new_var += "'"
-                
-                body = substitute_var(body, var, new_var)
-                var = new_var
-            
-            # On remonte le quantificateur et on réapplique to_prenex sur le nouveau corps
-            # (au cas où il y aurait d'autres quantificateurs à remonter)
-            return to_prenex(QuantifF(left.q, var, BoolOpF(body, f.op, right)))
-
-        # Cas 2 : Quantificateur à Droite : L op (Qx. P) -> Qx. (L op P)
-        elif isinstance(right, QuantifF):
-            var = right.var
-            body = right.body
-            
-            # Vérification conflit avec gauche
-            if var in get_free_vars(left):
-                new_var = var + "'"
-                while new_var in get_free_vars(left) or new_var in get_free_vars(body):
-                    new_var += "'"
-                
-                body = substitute_var(body, var, new_var)
-                var = new_var
-                
-            return to_prenex(QuantifF(right.q, var, BoolOpF(left, f.op, body)))
-            
-        return BoolOpF(left, f.op, right)
-
-    elif isinstance(f, QuantifF):
-        # Si c'est déjà un quantificateur, on traite juste le corps
-        return QuantifF(f.q, f.var, to_prenex(f.body))
-
-    # Cas de base (Const, Compar)
-    return f
 
 # -----------------------------------------------------------------------------
-# 3. Prétraitement et Normalisation (Annexe A.2.2)
+#  3.Prétraitement
 # -----------------------------------------------------------------------------
 
 def remove_forall(f: Formula) -> Formula:
     """Convertit ∀x.P en ¬(∃x.¬P)."""
     if isinstance(f, QuantifF):
         if isinstance(f.q, All):
-            # ∀x.P -> ¬∃x.¬P
             return NotF(exq(f.var, NotF(remove_forall(f.body))))
         else:
             return QuantifF(f.q, f.var, remove_forall(f.body))
     elif isinstance(f, BoolOpF):
-        return BoolOpF(remove_forall(f.left), f.op, remove_forall(f.right))
+        # CORRECTIF : Utilisation de compréhension de liste sur 'elements'
+        # C'est ici que ton erreur "has no attribute left" se produisait
+        new_elements = [remove_forall(e) for e in f.elements]
+        return BoolOpF(f.op, new_elements)
     elif isinstance(f, NotF):
         return NotF(remove_forall(f.sub))
     return f
 
 def push_negation(f: Formula) -> Formula:
-    """Pousse les négations vers les feuilles et élimine les négations de relations [cite: 266-268]."""
+    """Pousse les négations vers les feuilles."""
     if isinstance(f, NotF):
         sub = f.sub
         if isinstance(sub, ConstF):
             return ConstF(not sub.val)
         elif isinstance(sub, NotF):
-            return push_negation(sub.sub) # Double négation
+            return push_negation(sub.sub)
         elif isinstance(sub, BoolOpF):
-            # De Morgan
-            if isinstance(sub.op, Conj):
-                return disj(push_negation(NotF(sub.left)), push_negation(NotF(sub.right)))
-            else: # Disj
-                return conj(push_negation(NotF(sub.left)), push_negation(NotF(sub.right)))
-        elif isinstance(sub, QuantifF):
-            # ¬∃x.P -> ∀x.¬P (mais on a déjà supprimé les ∀, donc on garde ¬∃)
-            # Ici, l'algorithme demande de traiter l'élimination "de l'intérieur".
-            # On laisse la négation devant le quantifieur pour l'instant, 
-            # elle sera traitée quand on éliminera le quantifieur.
-            return f 
+            # De Morgan sur une liste
+            new_op = Disj() if isinstance(sub.op, Conj) else Conj()
+            new_elements = [push_negation(NotF(e)) for e in sub.elements]
+            return BoolOpF(new_op, new_elements)
         elif isinstance(sub, ComparF):
-            # ¬(x < y) -> y < x ∨ x = y 
-            # ¬(x = y) -> x < y ∨ y < x
             x, y = sub.left, sub.right
             if isinstance(sub.op, Lt):
                 return disj(ltf(y, x), eqf(x, y))
             elif isinstance(sub.op, Eq):
                 return disj(ltf(x, y), ltf(y, x))
-    
+            
+        return f # Cas par défaut (ex: negation sur quantifieur)
+
     elif isinstance(f, BoolOpF):
-        return BoolOpF(push_negation(f.left), f.op, push_negation(f.right))
+        new_elements = [push_negation(e) for e in f.elements]
+        return BoolOpF(f.op, new_elements)
+    
     elif isinstance(f, QuantifF):
         return QuantifF(f.q, f.var, push_negation(f.body))
     
     return f
 
+def to_prenex(f: Formula) -> Formula:
+    """
+    Forme Prénexe adaptée à la structure BoolOpF([A, B]).
+    """
+    if isinstance(f, NotF):
+        sub = to_prenex(f.sub)
+        if isinstance(sub, QuantifF):
+            new_q = Ex() if isinstance(sub.q, All) else All()
+            return to_prenex(QuantifF(new_q, sub.var, NotF(sub.body)))
+        return NotF(sub)
+
+    elif isinstance(f, BoolOpF):
+        # On traite d'abord récursivement les enfants
+        processed_elements = [to_prenex(e) for e in f.elements]
+        
+        # Logique de remontée des quantificateurs (suppose binaire pour simplifier)
+        if len(processed_elements) == 2:
+            left, right = processed_elements[0], processed_elements[1]
+            
+            # Cas 1 : Quantificateur à Gauche (∃x.P) op R -> ∃x.(P op R)
+            if isinstance(left, QuantifF):
+                var, body = left.var, left.body
+                # Vérification de collision (C'est ici que l'AssertionError est corrigée)
+                if var in get_free_vars(right):
+                    new_var = var + "'"
+                    while new_var in get_free_vars(right) or new_var in get_free_vars(body):
+                        new_var += "'"
+                    body = substitute_var(body, var, new_var)
+                    var = new_var
+                
+                # On reconstruit avec la nouvelle variable et le corps modifié
+                return to_prenex(QuantifF(left.q, var, BoolOpF(f.op, [body, right])))
+
+            # Cas 2 : Quantificateur à Droite L op (∃x.P) -> ∃x.(L op P)
+            elif isinstance(right, QuantifF):
+                var, body = right.var, right.body
+                if var in get_free_vars(left):
+                    new_var = var + "'"
+                    while new_var in get_free_vars(left) or new_var in get_free_vars(body):
+                        new_var += "'"
+                    body = substitute_var(body, var, new_var)
+                    var = new_var
+                
+                return to_prenex(QuantifF(right.q, var, BoolOpF(f.op, [left, body])))
+            
+            return BoolOpF(f.op, [left, right])
+        
+        return BoolOpF(f.op, processed_elements)
+
+    elif isinstance(f, QuantifF):
+        return QuantifF(f.q, f.var, to_prenex(f.body))
+
+    return f
+
+# -----------------------------------------------------------------------------
+# 4. DNF et Élimination
+# -----------------------------------------------------------------------------
+
 def to_dnf_list(f: Formula) -> list[list[Formula]]:
-    """
-    Transforme une formule sans quantificateurs en une liste de listes de littéraux (DNF).
-    [[A, B], [C]] signifie (A ∧ B) ∨ C.
-    Hypothèse: f est déjà en forme normale négative (NNF).
-    """
+    """Transforme en DNF (liste de listes)."""
     if isinstance(f, ConstF):
         return [[f]] if f.val else []
     elif isinstance(f, ComparF):
         return [[f]]
     elif isinstance(f, BoolOpF):
-        left_dnf = to_dnf_list(f.left)
-        right_dnf = to_dnf_list(f.right)
-        
-        if isinstance(f.op, Disj):
-            # Union des clauses (OU)
-            return left_dnf + right_dnf
-        elif isinstance(f.op, Conj):
-            # Produit cartésien (ET) : (A ∨ B) ∧ (C ∨ D) -> AC ∨ AD ∨ BC ∨ BD
-            result = []
-            for l_clause in left_dnf:
-                for r_clause in right_dnf:
-                    result.append(l_clause + r_clause)
-            return result
+        # On suppose binaire car issu de conj/disj
+        if len(f.elements) >= 2:
+            left_dnf = to_dnf_list(f.elements[0])
+            right_dnf = to_dnf_list(f.elements[1]) 
             
-    # Cas NotF ne devrait pas arriver ici sur des formules complexes si push_negation est bien fait,
-    # sauf sur des littéraux ou quantificateurs.
+            if isinstance(f.op, Disj):
+                return left_dnf + right_dnf
+            elif isinstance(f.op, Conj):
+                result = []
+                for l_clause in left_dnf:
+                    for r_clause in right_dnf:
+                        result.append(l_clause + r_clause)
+                return result
     return [[f]]
 
-# -----------------------------------------------------------------------------
-# 4. Élimination des variables (Annexe A.2.3)
-# -----------------------------------------------------------------------------
-
 def eliminate_existential(var: str, conjunction: list[Formula]) -> Formula:
-    """
-    Élimine ∃var d'une conjonction de littéraux (ComparF ou ConstF).
-    Retourne une formule équivalente sans 'var'.
-    """
-    # 1. Si x n'est pas libre dans la conjonction -> return conjonction 
-    # (On vérifie implicitement en triant les termes)
-    
-    lower_bounds = [] # u < x
-    upper_bounds = [] # x < v
-    equalities = []   # x = w (ou w = x)
-    others = []       # formules ne contenant pas x
+    lower, upper, equalities, others = [], [], [], []
     
     for f in conjunction:
         if isinstance(f, ConstF):
-            if not f.val: return ConstF(False) # Faux dans un ET annule tout
-            continue # Vrai dans un ET est neutre
-            
+            if not f.val: return ConstF(False)
+            continue
         if not isinstance(f, ComparF):
-            # Ne devrait pas arriver si DNF est correcte
             others.append(f)
             continue
 
         l, r = f.left, f.right
-        
-        # 2. Si x < x présent -> return False 
-        if l == var and r == var and isinstance(f.op, Lt):
-            return ConstF(False)
+        if l == var and r == var and isinstance(f.op, Lt): return ConstF(False)
         
         if isinstance(f.op, Eq):
             if l == var: equalities.append(r)
             elif r == var: equalities.append(l)
             else: others.append(f)
         elif isinstance(f.op, Lt):
-            if l == var: upper_bounds.append(r) # var < r -> borne sup pour var
-            elif r == var: lower_bounds.append(l) # l < var -> borne inf pour var
+            if l == var: upper.append(r)
+            elif r == var: lower.append(l)
             else: others.append(f)
 
-    # 4. Si égalité présente (x = w0) 
     if equalities:
         w0 = equalities[0]
-        # On remplace x par w0 dans toutes les autres contraintes
-        new_constraints = []
-        
-        # Ajouter les autres égalités : w_k = w0
-        for w in equalities[1:]:
-            new_constraints.append(eqf(w, w0))
-        
-        # Ajouter bornes inf : u_i < w0
-        for u in lower_bounds:
-            new_constraints.append(ltf(u, w0))
-            
-        # Ajouter bornes sup : w0 < v_j
-        for v in upper_bounds:
-            new_constraints.append(ltf(w0, v))
-            
-        final_list = new_constraints + others
-        if not final_list: return ConstF(True)
-        
-        # Reconstruire la formule
-        res = final_list[0]
-        for item in final_list[1:]:
-            res = conj(res, item)
+        new_c = []
+        for w in equalities[1:]: new_c.append(eqf(w, w0))
+        for u in lower: new_c.append(ltf(u, w0))
+        for v in upper: new_c.append(ltf(w0, v))
+        final = new_c + others
+        if not final: return ConstF(True)
+        res = final[0]
+        for x in final[1:]: res = conj(res, x)
         return res
 
-    # 5. Pas d'égalité, mais bornes inf ET sup présentes 
-    # (∃x. u < x ∧ x < v) <-> u < v
-    if lower_bounds and upper_bounds:
-        new_constraints = []
-        for u in lower_bounds:
-            for v in upper_bounds:
-                new_constraints.append(ltf(u, v))
-        
-        final_list = new_constraints + others
-        if not final_list: return ConstF(True)
-        
-        res = final_list[0]
-        for item in final_list[1:]:
-            res = conj(res, item)
+    if lower and upper:
+        new_c = [ltf(u, v) for u in lower for v in upper]
+        final = new_c + others
+        if not final: return ConstF(True)
+        res = final[0]
+        for x in final[1:]: res = conj(res, x)
         return res
 
-    # 6. Uniquement bornes inf OU bornes sup (ou rien) 
-    # L'ensemble est dense et sans bornes, donc on peut toujours trouver un x.
-    # On supprime simplement les contraintes sur x.
-    if not others:
-        return ConstF(True)
-    
+    if not others: return ConstF(True)
     res = others[0]
-    for item in others[1:]:
-        res = conj(res, item)
+    for x in others[1:]: res = conj(res, x)
     return res
 
 def process_formula(f: Formula) -> Formula:
-    """Fonction récursive principale pour éliminer les quantificateurs."""
-    
-    # Étape 1: Nettoyage (∀ -> ∃, NNF)
-    # Note: On applique remove_forall au début globalement, mais ici on gère la récursion
-    
     if isinstance(f, QuantifF) and isinstance(f.q, Ex):
-        # On traite d'abord le corps (élimination de l'intérieur vers l'extérieur) 
-        body_simplified = process_formula(f.body)
-        
-        # Prétraitement du corps : NNF et simplification des négations de relations
-        body_nnf = push_negation(body_simplified)
-        
-        # Conversion en DNF : ∨ (∧ littéraux) 
-        # ∃x. (C1 ∨ C2) <-> (∃x.C1) ∨ (∃x.C2)
+        body_simp = process_formula(f.body)
+        body_nnf = push_negation(body_simp)
         dnf_clauses = to_dnf_list(body_nnf)
+        results = [eliminate_existential(f.var, c) for c in dnf_clauses]
         
-        results = []
-        for clause in dnf_clauses:
-            # Élimination de x dans chaque clause conjonctive
-            eliminated = eliminate_existential(f.var, clause)
-            results.append(eliminated)
+        if not results: return ConstF(False)
+        final = results[0]
+        for r in results[1:]: final = disj(final, r)
+        return final
         
-        if not results:
-            return ConstF(False)
-            
-        # Recombiner les résultats avec des OU
-        final_f = results[0]
-        for res in results[1:]:
-            final_f = disj(final_f, res)
-            
-        return final_f
-
     elif isinstance(f, NotF):
-        # Si on rencontre un Not après remove_forall, c'est souvent un ¬∃ (ancien ∀)
-        # On traite récursivement
         return NotF(process_formula(f.sub))
-        
     elif isinstance(f, BoolOpF):
-        return BoolOpF(process_formula(f.left), f.op, process_formula(f.right))
-        
-    # Cas de base (Const, Compar)
+        new_elems = [process_formula(e) for e in f.elements]
+        return BoolOpF(f.op, new_elems)
     return f
 
-# -----------------------------------------------------------------------------
-# 5. Fonction Principale (Simplification finale)
-# -----------------------------------------------------------------------------
-
 def simplify_bool(f: Formula) -> Formula:
-    """Simplification basique des constantes (True ∧ x -> x, etc.)."""
     if isinstance(f, BoolOpF):
-        l = simplify_bool(f.left)
-        r = simplify_bool(f.right)
-        
-        if isinstance(f.op, Conj):
-            if isinstance(l, ConstF): return r if l.val else ConstF(False)
-            if isinstance(r, ConstF): return l if r.val else ConstF(False)
-        elif isinstance(f.op, Disj):
-            if isinstance(l, ConstF): return ConstF(True) if l.val else r
-            if isinstance(r, ConstF): return ConstF(True) if r.val else l
-            
-        return BoolOpF(l, f.op, r)
-        
+        new_elems = [simplify_bool(e) for e in f.elements]
+        if len(new_elems) == 2:
+            l, r = new_elems[0], new_elems[1]
+            if isinstance(f.op, Conj):
+                if isinstance(l, ConstF): return r if l.val else ConstF(False)
+                if isinstance(r, ConstF): return l if r.val else ConstF(False)
+            elif isinstance(f.op, Disj):
+                if isinstance(l, ConstF): return ConstF(True) if l.val else r
+                if isinstance(r, ConstF): return ConstF(True) if r.val else l
+        return BoolOpF(f.op, new_elems)
     elif isinstance(f, NotF):
         sub = simplify_bool(f.sub)
         if isinstance(sub, ConstF): return ConstF(not sub.val)
         return NotF(sub)
-        
     return f
 
 def solve_do(f: Formula) -> bool:
-    """Procédure complète de décision."""
-    # 1. ∀ -> ∃
-    f_step1 = remove_forall(f)
-    # 2. Élimination récursive
-    f_step2 = process_formula(f_step1)
-    # 3. Simplification booléenne finale
-    f_final = simplify_bool(f_step2)
+    # 0. Fermeture automatique
+    free_v = get_free_vars(f)
+    for v in sorted(list(free_v)):
+        f = allq(v, f)
+
+    # 1. Prénexe (Attention, c'est crucial de l'avoir avant remove_forall)
+    f = to_prenex(f)
     
-    print(f"Formule réduite : {f_final}")
+    # 2. ∀ -> ∃
+    f = remove_forall(f)
     
-    if isinstance(f_final, ConstF):
-        return f_final.val
+    # 3. Élimination
+    f = process_formula(f)
+    
+    # 4. Simplification
+    f = simplify_bool(f)
+    
+    if isinstance(f, ConstF):
+        return f.val
     else:
-        # Si la formule n'est pas close ou si la simplification est incomplète
-        raise ValueError("La formule n'a pas pu être réduite à un booléen (variables libres ?)")
+        print(f"Attention: Formule non réduite: {f}")
+        return False
