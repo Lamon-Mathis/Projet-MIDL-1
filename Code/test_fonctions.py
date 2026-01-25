@@ -84,10 +84,6 @@ print("f2 =", display_formula(f2), "→", display_formula(dnf(f2)))
 print("f3 =", display_formula(f3), "→", display_formula(dnf(f3)))
 print("f4 =", display_formula(f4), "→", display_formula(dnf(f4)))
 
-print("\n________________ Fin des tests ________________\n")
-
-
-
 #=======================================================================
 # Tests de Traitement
 #=======================================================================
@@ -253,7 +249,7 @@ class TestLogicDO(unittest.TestCase):
         self.assertIsInstance(res, QuantifF)
         self.assertIsInstance(res.q, All)
         self.assertIsInstance(res.body, BoolOpF)
-        print("test_prenex_conjuction : OK\n")
+        print("test_prenex_conjunction : OK\n")
 
     def test_prenex_collision(self):
         """Test renommage automatique si collision"""

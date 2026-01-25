@@ -1,0 +1,13 @@
+<map id="syntax.Formula" name="syntax.Formula">
+<area shape="rect" id="Node000001" title=" " alt="" coords="305,5,428,31"/>
+<area shape="rect" id="Node000002" href="$classsyntax_1_1BoolOpF.html" title=" " alt="" coords="5,79,131,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="306,36,117,81,116,76,305,31"/>
+<area shape="rect" id="Node000003" href="$classsyntax_1_1ComparF.html" title=" " alt="" coords="155,79,285,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="332,39,245,81,243,76,330,34"/>
+<area shape="rect" id="Node000004" href="$classsyntax_1_1ConstF.html" title=" " alt="" coords="309,79,424,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="369,44,369,79,364,79,364,44"/>
+<area shape="rect" id="Node000005" href="$classsyntax_1_1NotF.html" title=" " alt="" coords="448,79,549,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="401,35,478,76,476,81,398,39"/>
+<area shape="rect" id="Node000006" href="$classsyntax_1_1QuantifF.html" title=" " alt="" coords="574,79,701,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="424,32,594,76,593,81,422,37"/>
+</map>
