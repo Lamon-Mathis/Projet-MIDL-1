@@ -1,6 +1,5 @@
-# test_fonctions.py
 
-from fonctions_bis import *
+from fonctions import *
 from syntax import *
 
 #=======================================================================
@@ -132,7 +131,7 @@ class TestLogicDO(unittest.TestCase):
         self.u = "u"
         self.v = "v"
 
-    # --- TÂCHE T1 : Fonctions de base ---
+    # --- TÂCHE T2 : Fonctions de base ---
 
     def test_get_free_vars(self):
         """Vérifie l'extraction des variables libres."""
@@ -144,6 +143,93 @@ class TestLogicDO(unittest.TestCase):
 
         f3 = allq(self.x, eqf(self.x, self.x))
         self.assertEqual(get_free_vars(f3), set())
+        print("test_get_free_vars : OK \n")
+
+    def test_get_precedence(self):
+        """Vérifie que la hiérarchie des opérateurs est correcte."""
+        # 1. Atomes (Priorité Max : 5)
+        # Constante
+        self.assertEqual(get_precedence(ConstF(True)), 5)
+        # Comparaison (x < y)
+        self.assertEqual(get_precedence(ltf(self.x, self.y)), 5)
+
+        # 2. Négation (Priorité : 4)
+        # ¬A
+        f_not = NotF(ConstF(True))
+        self.assertEqual(get_precedence(f_not), 4)
+
+        # 3. Conjonction (Priorité : 3)
+        # A ∧ B (plus fort que OU)
+        f_and = conj(ConstF(True), ConstF(False))
+        self.assertEqual(get_precedence(f_and), 3)
+
+        # 4. Disjonction (Priorité : 2)
+        # A ∨ B (moins fort que ET)
+        f_or = disj(ConstF(True), ConstF(False))
+        self.assertEqual(get_precedence(f_or), 2)
+
+        # 5. Quantificateurs (Priorité Min : 1)
+        # ∀x. P (englobe tout, donc priorité faible)
+        f_all = allq(self.x, ltf(self.x, self.y))
+        f_ex = exq(self.x, ltf(self.x, self.y))
+        self.assertEqual(get_precedence(f_all), 1)
+        self.assertEqual(get_precedence(f_ex), 1)
+
+        print("Test get_precedence : OK\n")
+
+    def test_min_parentheses(self):
+        """
+        Teste si les parenthèses sont correctement supprimées ou gardées
+        selon la priorité des opérateurs.
+        """
+        # On définit des atomes simples pour les tests
+        A = ltf("x", "y")  # x < y
+        B = eqf("z", "u")  # z = u
+        C = ltf("a", "b")  # a < b
+
+        print("\n--- Tests parenthésage minimal ---")
+
+        # CAS 1 : Priorité ET > OU
+        # (A ∧ B) ∨ C  --> A ∧ B ∨ C
+        f1 = disj(conj(A, B), C)
+        res1 = min_parentheses(f1)
+        print(f"Test ET > OU : \nAvant : ", f1,"\nAprès : ", res1)
+        self.assertEqual(res1, "x<y ∧ z=u ∨ a<b")
+        print("\n")
+
+        # CAS 2 : Priorité OU < ET
+        # (A ∨ B) ∧ C  --> (A ∨ B) ∧ C
+        f2 = conj(disj(A, B), C)
+        res2 = min_parentheses(f2)
+        print(f"Test OU < ET : \nAvant : ", f2, "\nAprès : ", res2)
+        self.assertEqual(res2, "(x<y ∨ z=u) ∧ a<b")
+        print("\n")
+
+        # CAS 3 : Négation
+        # ¬(A ∧ B)
+        f3 = NotF(conj(A, B))
+        res3 = min_parentheses(f3)
+        print(f"Test NOT(ET) : \nAvant : ", f3,"\nAprès : ", res3)
+        self.assertEqual(res3, "¬(x<y ∧ z=u)")
+        print("\n")
+
+        # ¬A
+        f4 = NotF(A)
+        res4 = min_parentheses(f4)
+        print(f"Test NOT(Atom) : \nAvant : ", f4, "\nAprès : ", res4)
+        self.assertEqual(res4, "¬x<y")
+        print("\n")
+
+        # CAS 4 : Quantificateurs
+        # (∀x. A) ∧ B
+        f_quant = allq("x", A)
+        f5 = conj(f_quant, B)
+        res5 = min_parentheses(f5)
+        print(f"Test Quantif : \nAvant : ", f5, "\nAprès : ", res5)
+        self.assertEqual(res5, "(∀x.x<y) ∧ z=u")
+        print("\n")
+
+        print("Test Pretty Print OK")
 
 
     # --- TÂCHE T2 : Convertion en forme prénexe ---
@@ -156,7 +242,7 @@ class TestLogicDO(unittest.TestCase):
         self.assertIsInstance(res, QuantifF)
         self.assertIsInstance(res.q, Ex) # Devenu Ex
         self.assertIsInstance(res.body, NotF) # Le Not est descendu
-        print("test_prenex_negation : OK")
+        print("test_prenex_negation : OK\n")
 
     def test_prenex_conjunction(self):
         """Test remonter quantificateur dans un ET"""
@@ -167,7 +253,7 @@ class TestLogicDO(unittest.TestCase):
         self.assertIsInstance(res, QuantifF)
         self.assertIsInstance(res.q, All)
         self.assertIsInstance(res.body, BoolOpF)
-        print("test_prenex_conjuction : OK")
+        print("test_prenex_conjuction : OK\n")
 
     def test_prenex_collision(self):
         """Test renommage automatique si collision"""
@@ -176,18 +262,17 @@ class TestLogicDO(unittest.TestCase):
         # On ne peut pas juste sortir le x. Il faut renommer le x de gauche.
         # Résultat attendu : ∀x'. (x' < y ∧ x = z)
 
-        f = conj(allq(self.x, eqf(self.x, self.y)), ltf(self.z, self.u))
-        
+        f = conj(allq(self.x, ltf(self.x, self.y)), eqf(self.x, self.z))
         res = to_prenex(f)
-        print(f)
         
         # Le quantificateur doit être au sommet
         self.assertIsInstance(res, QuantifF)
         # La variable quantifiée ne doit PAS être 'x' (car x était libre à droite)
-        self.assertEqual(res.var, self.x)
+        self.assertNotEqual(res.var, self.x)
         # Le corps doit contenir la nouvelle variable ET l'ancienne x (celle de droite)
         s_res = str(res)
         self.assertTrue(self.x in s_res)
+        print("test_prenex_collision : OK\n")
 
     # --- TÂCHE T2 : Prétraitement ---
 
@@ -197,6 +282,7 @@ class TestLogicDO(unittest.TestCase):
         res = remove_forall(f)
         self.assertIsInstance(res, NotF)
         self.assertIsInstance(res.sub, QuantifF)  # Doit être un ∃
+        print("test_remove_forall : OK\n")
 
     def test_push_negation_relations(self):
         """Vérifie ¬(x < y) -> y < x ∨ x = y."""
@@ -206,6 +292,7 @@ class TestLogicDO(unittest.TestCase):
         self.assertIsInstance(res.op, Disj)  # OU
         s = str(res)
         self.assertTrue((self.x in s) and (self.y in s))
+        print("test_push_negation_relations : OK\n")
 
     # --- TÂCHE T2 : Élimination ---
 
@@ -215,12 +302,14 @@ class TestLogicDO(unittest.TestCase):
         res = eliminate_existential(self.x, clauses)
         self.assertIsInstance(res, ConstF)
         self.assertFalse(res.val)
+        print("test_elimination_trivial_false : OK\n")
 
     def test_elimination_substitution(self):
         """Cas : x = z ∧ y < x -> y < z."""
         clauses = [eqf(self.x, self.z), ltf(self.y, self.x)]
         res = eliminate_existential(self.x, clauses)
         self.assertNotIn(self.x, str(res))  # x doit disparaitre
+        print("test_elimination_substitution : OK \n")
 
     def test_elimination_transitivity(self):
         """Cas : u < x ∧ x < v -> u < v."""
@@ -229,6 +318,7 @@ class TestLogicDO(unittest.TestCase):
         # Vérif sommaire de la structure
         self.assertTrue(str(res).count(self.u) > 0)
         self.assertTrue(str(res).count(self.v) > 0)
+        print("test_elimination_transitivity : OK\n")
 
     # --- TÂCHE T2 : Solveur Complet ---
 
@@ -238,11 +328,13 @@ class TestLogicDO(unittest.TestCase):
         conclusion = exq(self.y, conj(ltf(self.x, self.y), ltf(self.y, self.z)))
         f = allq(self.x, allq(self.z, impl(premise, conclusion)))
         self.assertTrue(solve_do(f))
+        print("test_solver_density : OK\n")
 
     def test_solver_false_statement(self):
         """Formule fausse."""
         f = exq(self.x, ltf(self.x, self.x))
         self.assertFalse(solve_do(f))
+        print("test_solver_false_statement : OK")
 
 
 if __name__ == '__main__':
