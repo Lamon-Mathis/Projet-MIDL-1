@@ -1,0 +1,287 @@
+\doxysection{Code/fonctions.py File Reference}
+\hypertarget{fonctions_8py}{}\label{fonctions_8py}\index{Code/fonctions.py@{Code/fonctions.py}}
+
+
+Implémentation des fonctions logiques et de l\textquotesingle{}algorithme d\textquotesingle{}élimination des quantificateurs.  
+
+
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{fonctions_8py_ab1a02dcc9959d67bad60a72c739691a4}{fonctions.\+display\+\_\+formula}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} formula, bool implication\+\_\+mode=True)
+\begin{DoxyCompactList}\small\item\em cette fonction retourne une représentation en chaîne de caractères d\textquotesingle{}une formule logique. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{fonctions_8py_a1318393370d787d540556ec2790c1398}{fonctions.\+dual\+Op}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} formula)
+\begin{DoxyCompactList}\small\item\em cette fonction retourne la formule obtenue en remplaçant toutes les conjonctions par des disjonctions et réciproquement, \end{DoxyCompactList}\item 
+\mbox{\hyperlink{fonctions_8py_ad0561a2f074adae0bf948544080a4952}{fonctions.\+dual}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}\texorpdfstring{$\vert$}{|}tuple formula)
+\begin{DoxyCompactList}\small\item\em cette fonction retourne la formule duale de la formule donnée en remplaçant toutes les conjonctions par des disjonctions et réciproquement, et en remplaçant chaque sous-\/formule par sa duale. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{fonctions_8py_acb9107c755cde0fe5fedb219cb962e46}{fonctions.\+eval}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} formula, dict\mbox{[}str, float\mbox{]} env=None)
+\begin{DoxyCompactList}\small\item\em Évalue la valeur de vérité d\textquotesingle{}une formule sans quantificateurs dans un environnement donné. \end{DoxyCompactList}\item 
+\Hypertarget{fonctions_8py_a6e7b7b4483ea0bed4525a89ed819ee38}\label{fonctions_8py_a6e7b7b4483ea0bed4525a89ed819ee38} 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} {\bfseries fonctions.\+nnf} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} formula)
+\item 
+\Hypertarget{fonctions_8py_ad8afabd756bbc96366f4eb498e7d4140}\label{fonctions_8py_ad8afabd756bbc96366f4eb498e7d4140} 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} {\bfseries fonctions.\+dnf} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} formula)
+\item 
+set\mbox{[}str\mbox{]} \mbox{\hyperlink{fonctions_8py_aca4e681fc13612a99d41e8542cee5c22}{fonctions.\+get\+\_\+free\+\_\+vars}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\item 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} \mbox{\hyperlink{fonctions_8py_a4012703dbd47669e66f6ed5167301e48}{fonctions.\+substitute\+\_\+var}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f, str old\+\_\+name, str new\+\_\+name)
+\item 
+int \mbox{\hyperlink{fonctions_8py_ada4b31a22252557f5b409a6e077be061}{fonctions.\+get\+\_\+precedence}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\item 
+str \mbox{\hyperlink{fonctions_8py_af2a089c98018a90bd2a8b738c09fb2cb}{fonctions.\+min\+\_\+parentheses}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f, int parent\+\_\+prec=0)
+\item 
+bool \mbox{\hyperlink{fonctions_8py_a1116e5fea133d9298ebcebd9e39fe397}{fonctions.\+is\+\_\+closed}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\item 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} \mbox{\hyperlink{fonctions_8py_a8708c8edc2f048f40493c05bb6c7cfde}{fonctions.\+close\+\_\+formula}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\item 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} \mbox{\hyperlink{fonctions_8py_a532351b9713c614cc58657d0658065de}{fonctions.\+remove\+\_\+forall}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\item 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} \mbox{\hyperlink{fonctions_8py_a2593a9dcb3ca77f1a01fac3f8f2fdea2}{fonctions.\+push\+\_\+negation}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\begin{DoxyCompactList}\small\item\em version utile et complete de nnf qui transforme une formule en forme normale négative (NNF) c’est-\/à-\/dire que les négations ne portent que sur des formules atomiques. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} \mbox{\hyperlink{fonctions_8py_a2ed360225163f69ad2512d1e26859b31}{fonctions.\+to\+\_\+prenex}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\begin{DoxyCompactList}\small\item\em Transforme la formule en forme Prénexe (tous les quantificateurs au début). \end{DoxyCompactList}\item 
+list\mbox{[}list\mbox{[}\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}\mbox{]}\mbox{]} \mbox{\hyperlink{fonctions_8py_a026b6b4f62657f5d897e937718e0b53d}{fonctions.\+to\+\_\+dnf\+\_\+list}} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\begin{DoxyCompactList}\small\item\em Convertit une formule sans quantificateurs en une structure de liste de clauses (DNF). \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} \mbox{\hyperlink{fonctions_8py_adb0b603dba1de186331fa5faa62138af}{fonctions.\+eliminate\+\_\+existential}} (str var, list\mbox{[}\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}\mbox{]} conjunction)
+\begin{DoxyCompactList}\small\item\em Élimine une variable quantifiée existentiellement (ex\+: ∃x) d\textquotesingle{}une liste de contraintes. \end{DoxyCompactList}\item 
+\Hypertarget{fonctions_8py_a1e686cd08c9f8483ccb9a2a1fd1c404a}\label{fonctions_8py_a1e686cd08c9f8483ccb9a2a1fd1c404a} 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} {\bfseries fonctions.\+process\+\_\+formula} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\item 
+\Hypertarget{fonctions_8py_aeb5a57f2cefc993f8009d7904b94f2e6}\label{fonctions_8py_aeb5a57f2cefc993f8009d7904b94f2e6} 
+\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} {\bfseries fonctions.\+simplify\+\_\+bool} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\item 
+\Hypertarget{fonctions_8py_ac078f70e1b2318d4454b1d4de66f388a}\label{fonctions_8py_ac078f70e1b2318d4454b1d4de66f388a} 
+bool {\bfseries fonctions.\+solve\+\_\+do} (\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} f)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Implémentation des fonctions logiques et de l\textquotesingle{}algorithme d\textquotesingle{}élimination des quantificateurs. 
+
+\begin{DoxyAuthor}{Author}
+Lamon Salley 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2026 
+\end{DoxyDate}
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{fonctions_8py_a8708c8edc2f048f40493c05bb6c7cfde}\label{fonctions_8py_a8708c8edc2f048f40493c05bb6c7cfde} 
+\index{fonctions.py@{fonctions.py}!close\_formula@{close\_formula}}
+\index{close\_formula@{close\_formula}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{close\_formula()}{close\_formula()}}
+{\footnotesize\ttfamily  Formula fonctions.\+close\+\_\+formula (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Ferme automatiquement la formule en ajoutant des quantificateurs universels
+pour toutes les variables libres trouvées.
+Exemple: (x < y) devient ∀x∀y.(x < y)
+\end{DoxyVerb}
+ \Hypertarget{fonctions_8py_ab1a02dcc9959d67bad60a72c739691a4}\label{fonctions_8py_ab1a02dcc9959d67bad60a72c739691a4} 
+\index{fonctions.py@{fonctions.py}!display\_formula@{display\_formula}}
+\index{display\_formula@{display\_formula}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{display\_formula()}{display\_formula()}}
+{\footnotesize\ttfamily fonctions.\+display\+\_\+formula (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{formula,  }\item[{bool }]{implication\+\_\+mode = {\ttfamily True} }\end{DoxyParamCaption})}
+
+
+
+cette fonction retourne une représentation en chaîne de caractères d\textquotesingle{}une formule logique. 
+
+CHOIX D\textquotesingle{}IMPLEMENTATION \+: On se base alors sur \+\_\+\+\_\+\+\_\+str\+\_\+\+\_\+\+\_\+ mais on ajoute la possibiliter de creer des parametres simplement comme par exemple "{}implication\+\_\+mode"{} qui permet d\textquotesingle{}obtenir un affichage plus fin 
+\begin{DoxyParams}{Parameters}
+{\em formula} & \+: Formula \\
+\hline
+{\em implication\+\_\+mode} & \+: bool \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+str 
+\end{DoxyReturn}
+\Hypertarget{fonctions_8py_ad0561a2f074adae0bf948544080a4952}\label{fonctions_8py_ad0561a2f074adae0bf948544080a4952} 
+\index{fonctions.py@{fonctions.py}!dual@{dual}}
+\index{dual@{dual}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{dual()}{dual()}}
+{\footnotesize\ttfamily fonctions.\+dual (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}} \texorpdfstring{$\vert$}{|} tuple }]{formula }\end{DoxyParamCaption})}
+
+
+
+cette fonction retourne la formule duale de la formule donnée en remplaçant toutes les conjonctions par des disjonctions et réciproquement, et en remplaçant chaque sous-\/formule par sa duale. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em formula} & \+: Formula \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Formula @raise Value\+Error Formula with quantifiers is not allowed 
+\end{DoxyReturn}
+\Hypertarget{fonctions_8py_a1318393370d787d540556ec2790c1398}\label{fonctions_8py_a1318393370d787d540556ec2790c1398} 
+\index{fonctions.py@{fonctions.py}!dualOp@{dualOp}}
+\index{dualOp@{dualOp}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{dualOp()}{dualOp()}}
+{\footnotesize\ttfamily fonctions.\+dual\+Op (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{formula }\end{DoxyParamCaption})}
+
+
+
+cette fonction retourne la formule obtenue en remplaçant toutes les conjonctions par des disjonctions et réciproquement, 
+
+
+\begin{DoxyParams}{Parameters}
+{\em formula} & \+: Formula \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Formula @raise Value\+Error type of formula is not allowed 
+\end{DoxyReturn}
+\Hypertarget{fonctions_8py_adb0b603dba1de186331fa5faa62138af}\label{fonctions_8py_adb0b603dba1de186331fa5faa62138af} 
+\index{fonctions.py@{fonctions.py}!eliminate\_existential@{eliminate\_existential}}
+\index{eliminate\_existential@{eliminate\_existential}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{eliminate\_existential()}{eliminate\_existential()}}
+{\footnotesize\ttfamily  Formula fonctions.\+eliminate\+\_\+existential (\begin{DoxyParamCaption}\item[{str}]{var,  }\item[{list\mbox{[}\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}\mbox{]}}]{conjunction }\end{DoxyParamCaption})}
+
+
+
+Élimine une variable quantifiée existentiellement (ex\+: ∃x) d\textquotesingle{}une liste de contraintes. 
+
+CHOIX D\textquotesingle{}IMPLEMENTATION avec conseil d\textquotesingle{}IA \+: \textquotesingle{}Fourier-\/\+Motzkin\textquotesingle{} 1 \+: on trie les formules 2 \+: on ajoute des contreintes celons les cas pour obtenir les variables a supprimer
+
+
+\begin{DoxyParams}{Parameters}
+{\em var} & \+: str -\/ Le nom de la variable à éliminer. \\
+\hline
+{\em conjunction} & \+: list\mbox{[}Formula\mbox{]} -\/ Liste de littéraux représentant un ET logique. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Formula -\/ La formule résultante équivalente (sans \textquotesingle{}var\textquotesingle{}). 
+\end{DoxyReturn}
+\Hypertarget{fonctions_8py_acb9107c755cde0fe5fedb219cb962e46}\label{fonctions_8py_acb9107c755cde0fe5fedb219cb962e46} 
+\index{fonctions.py@{fonctions.py}!eval@{eval}}
+\index{eval@{eval}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{eval()}{eval()}}
+{\footnotesize\ttfamily  bool fonctions.\+eval (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{formula,  }\item[{dict\mbox{[}str, float\mbox{]} }]{env = {\ttfamily None} }\end{DoxyParamCaption})}
+
+
+
+Évalue la valeur de vérité d\textquotesingle{}une formule sans quantificateurs dans un environnement donné. 
+
+Cette fonction vérifie si une formule est Vraie ou Fausse en remplaçant les variables par les valeurs fournies dans le dictionnaire \textquotesingle{}env\textquotesingle{}. De plus elle fait bien attention a tester les valeurs des variables et non pas leurs noms comme dans la version précédente.
+
+
+\begin{DoxyParams}{Parameters}
+{\em formula} & \+: Formula -\/ La formule logique à évaluer (doit être sans quantificateurs). \\
+\hline
+{\em env} & \+: dict\mbox{[}str, float\mbox{]} -\/ (Optionnel) Dictionnaire associant les noms des variables à leurs valeurs numériques (ex\+: \{"{}x"{}\+: 1.\+0, "{}y"{}\+: 2.\+5\}). Requis si la formule contient des variables. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+bool -\/ True si la formule est satisfaite, False sinon. 
+\end{DoxyReturn}
+\Hypertarget{fonctions_8py_aca4e681fc13612a99d41e8542cee5c22}\label{fonctions_8py_aca4e681fc13612a99d41e8542cee5c22} 
+\index{fonctions.py@{fonctions.py}!get\_free\_vars@{get\_free\_vars}}
+\index{get\_free\_vars@{get\_free\_vars}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{get\_free\_vars()}{get\_free\_vars()}}
+{\footnotesize\ttfamily  set\mbox{[}str\mbox{]} fonctions.\+get\+\_\+free\+\_\+vars (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Retourne l'ensemble des variables libres.\end{DoxyVerb}
+ \Hypertarget{fonctions_8py_ada4b31a22252557f5b409a6e077be061}\label{fonctions_8py_ada4b31a22252557f5b409a6e077be061} 
+\index{fonctions.py@{fonctions.py}!get\_precedence@{get\_precedence}}
+\index{get\_precedence@{get\_precedence}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{get\_precedence()}{get\_precedence()}}
+{\footnotesize\ttfamily  int fonctions.\+get\+\_\+precedence (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Retourne la priorité d'un opérateur sous forme de chiffre, plus il est haut plus c'est prioritaire\end{DoxyVerb}
+ \Hypertarget{fonctions_8py_a1116e5fea133d9298ebcebd9e39fe397}\label{fonctions_8py_a1116e5fea133d9298ebcebd9e39fe397} 
+\index{fonctions.py@{fonctions.py}!is\_closed@{is\_closed}}
+\index{is\_closed@{is\_closed}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{is\_closed()}{is\_closed()}}
+{\footnotesize\ttfamily  bool fonctions.\+is\+\_\+closed (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Vérifie l'hypothèse que la formule est close.
+Retourne True si l'ensemble des variables libres est vide.
+\end{DoxyVerb}
+ \Hypertarget{fonctions_8py_af2a089c98018a90bd2a8b738c09fb2cb}\label{fonctions_8py_af2a089c98018a90bd2a8b738c09fb2cb} 
+\index{fonctions.py@{fonctions.py}!min\_parentheses@{min\_parentheses}}
+\index{min\_parentheses@{min\_parentheses}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{min\_parentheses()}{min\_parentheses()}}
+{\footnotesize\ttfamily  str fonctions.\+min\+\_\+parentheses (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f,  }\item[{int}]{parent\+\_\+prec = {\ttfamily 0} }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Affiche une formule avec un parenthésage minimal\end{DoxyVerb}
+ \Hypertarget{fonctions_8py_a2593a9dcb3ca77f1a01fac3f8f2fdea2}\label{fonctions_8py_a2593a9dcb3ca77f1a01fac3f8f2fdea2} 
+\index{fonctions.py@{fonctions.py}!push\_negation@{push\_negation}}
+\index{push\_negation@{push\_negation}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{push\_negation()}{push\_negation()}}
+{\footnotesize\ttfamily  Formula fonctions.\+push\+\_\+negation (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f }\end{DoxyParamCaption})}
+
+
+
+version utile et complete de nnf qui transforme une formule en forme normale négative (NNF) c’est-\/à-\/dire que les négations ne portent que sur des formules atomiques. 
+
+ici on teste pas a pas les différents opérateurs pour obtenir récursivement une NNF
+
+\begin{DoxyVerb}Pousse les négations vers les feuilles.\end{DoxyVerb}
+ \Hypertarget{fonctions_8py_a532351b9713c614cc58657d0658065de}\label{fonctions_8py_a532351b9713c614cc58657d0658065de} 
+\index{fonctions.py@{fonctions.py}!remove\_forall@{remove\_forall}}
+\index{remove\_forall@{remove\_forall}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{remove\_forall()}{remove\_forall()}}
+{\footnotesize\ttfamily  Formula fonctions.\+remove\+\_\+forall (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Convertit ∀x.P en ¬(∃x.¬P).\end{DoxyVerb}
+ \Hypertarget{fonctions_8py_a4012703dbd47669e66f6ed5167301e48}\label{fonctions_8py_a4012703dbd47669e66f6ed5167301e48} 
+\index{fonctions.py@{fonctions.py}!substitute\_var@{substitute\_var}}
+\index{substitute\_var@{substitute\_var}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{substitute\_var()}{substitute\_var()}}
+{\footnotesize\ttfamily  Formula fonctions.\+substitute\+\_\+var (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f,  }\item[{str}]{old\+\_\+name,  }\item[{str}]{new\+\_\+name }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Remplace old_name par new_name dans la formule.\end{DoxyVerb}
+ \Hypertarget{fonctions_8py_a026b6b4f62657f5d897e937718e0b53d}\label{fonctions_8py_a026b6b4f62657f5d897e937718e0b53d} 
+\index{fonctions.py@{fonctions.py}!to\_dnf\_list@{to\_dnf\_list}}
+\index{to\_dnf\_list@{to\_dnf\_list}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{to\_dnf\_list()}{to\_dnf\_list()}}
+{\footnotesize\ttfamily  list\mbox{[}list\mbox{[}Formula\mbox{]}\mbox{]} fonctions.\+to\+\_\+dnf\+\_\+list (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f }\end{DoxyParamCaption})}
+
+
+
+Convertit une formule sans quantificateurs en une structure de liste de clauses (DNF). 
+
+CHOIX D\textquotesingle{}IMPLEMENTATION \+: Contrairement à la fonction \textquotesingle{}dnf\textquotesingle{} classique qui retourne un objet \textquotesingle{}Formula\textquotesingle{} (arbre syntaxique), cette fonction retourne une structure de données spécifique \+: list\mbox{[}list\mbox{[}Formula\mbox{]}\mbox{]}
+\begin{DoxyItemize}
+\item La liste principale représente une DISJONCTION (OU).
+\item Chaque sous-\/liste interne représente une CONJONCTION (ET).
+\end{DoxyItemize}
+
+Pourquoi ? Pour que le traitement suivant \textquotesingle{}eliminate\+\_\+existential\textquotesingle{} soit plus simple et compréhensible
+
+
+\begin{DoxyParams}{Parameters}
+{\em f} & \+: Formula -\/ La formule à convertir (doit idéalement être déjà en NNF). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+list\mbox{[}list\mbox{[}Formula\mbox{]}\mbox{]} 
+\end{DoxyReturn}
+\Hypertarget{fonctions_8py_a2ed360225163f69ad2512d1e26859b31}\label{fonctions_8py_a2ed360225163f69ad2512d1e26859b31} 
+\index{fonctions.py@{fonctions.py}!to\_prenex@{to\_prenex}}
+\index{to\_prenex@{to\_prenex}!fonctions.py@{fonctions.py}}
+\doxysubsubsection{\texorpdfstring{to\_prenex()}{to\_prenex()}}
+{\footnotesize\ttfamily  Formula fonctions.\+to\+\_\+prenex (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classsyntax_1_1Formula}{Formula}}}]{f }\end{DoxyParamCaption})}
+
+
+
+Transforme la formule en forme Prénexe (tous les quantificateurs au début). 
+
+Cette fonction fait remonter les quantificateurs à travers les opérateurs booléens.
+
+CHOIX D\textquotesingle{}IMPLEMENTATION \+: Si un conflit de nom de variable survient lors de la remontée, la variable quantifiée est renommée pour éviter un conflit de nommage accidentelle des variables libres de l\textquotesingle{}autre branche.
+
+
+\begin{DoxyParams}{Parameters}
+{\em f} & \+: Formula \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Formula (forme prénexe)
+\end{DoxyReturn}
+\begin{DoxyVerb}Forme Prénexe adaptée à la structure BoolOpF([A, B]).
+\end{DoxyVerb}
+ 

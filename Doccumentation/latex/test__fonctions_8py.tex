@@ -1,0 +1,120 @@
+\doxysection{Code/test\+\_\+fonctions.py File Reference}
+\hypertarget{test__fonctions_8py}{}\label{test__fonctions_8py}\index{Code/test\_fonctions.py@{Code/test\_fonctions.py}}
+
+
+Implémentation des tests fonctions logiques.  
+
+
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classtest__fonctions_1_1TestLogicDO}{test\+\_\+fonctions.\+Test\+Logic\+DO}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+list \mbox{\hyperlink{test__fonctions_8py_a281f5920bca29f2185a65f0fda1f090c}{test\+\_\+fonctions.\+list\+\_\+formula}}
+\item 
+\Hypertarget{test__fonctions_8py_a751b60e3306577f6156577d2e4904117}\label{test__fonctions_8py_a751b60e3306577f6156577d2e4904117} 
+list {\bfseries test\+\_\+fonctions.\+formula} = list\+\_\+formula\mbox{[}i\mbox{]}
+\item 
+dict \mbox{\hyperlink{test__fonctions_8py_a0891d4f0770aa66d5146649ac3a3fdb4}{test\+\_\+fonctions.\+env\+\_\+test}}
+\item 
+\Hypertarget{test__fonctions_8py_aa72018fd7a215c6bf8a9fee5e7aaa8db}\label{test__fonctions_8py_aa72018fd7a215c6bf8a9fee5e7aaa8db} 
+{\bfseries test\+\_\+fonctions.\+res} = \mbox{\hyperlink{fonctions_8py_acb9107c755cde0fe5fedb219cb962e46}{eval}}(formula, env\+\_\+test)
+\item 
+\Hypertarget{test__fonctions_8py_a81165ca7d276a28927fb1c650d28af51}\label{test__fonctions_8py_a81165ca7d276a28927fb1c650d28af51} 
+{\bfseries test\+\_\+fonctions.\+A} = \mbox{\hyperlink{classsyntax_1_1ComparF}{ComparF}}("{}A"{}, \mbox{\hyperlink{classsyntax_1_1Eq}{Eq}}(), "{}B"{})
+\item 
+\Hypertarget{test__fonctions_8py_a423c974d45f87912828f91236bf749dd}\label{test__fonctions_8py_a423c974d45f87912828f91236bf749dd} 
+{\bfseries test\+\_\+fonctions.\+B} = \mbox{\hyperlink{classsyntax_1_1ComparF}{ComparF}}("{}B"{}, \mbox{\hyperlink{classsyntax_1_1Lt}{Lt}}(), "{}C"{})
+\item 
+\Hypertarget{test__fonctions_8py_a908accf340ae568c9f887d7859ddd0d2}\label{test__fonctions_8py_a908accf340ae568c9f887d7859ddd0d2} 
+{\bfseries test\+\_\+fonctions.\+f1} = \mbox{\hyperlink{classsyntax_1_1NotF}{NotF}}(\mbox{\hyperlink{classsyntax_1_1NotF}{NotF}}(A))
+\item 
+\Hypertarget{test__fonctions_8py_a699f8cc52c63d9658c79394adf40cee0}\label{test__fonctions_8py_a699f8cc52c63d9658c79394adf40cee0} 
+{\bfseries test\+\_\+fonctions.\+f2} = \mbox{\hyperlink{classsyntax_1_1NotF}{NotF}}(\mbox{\hyperlink{classsyntax_1_1BoolOpF}{Bool\+OpF}}(\mbox{\hyperlink{classsyntax_1_1Conj}{Conj}}(), \mbox{[}A, B\mbox{]}))
+\item 
+\Hypertarget{test__fonctions_8py_a862a48a99d043d323285c718b8ddc4d7}\label{test__fonctions_8py_a862a48a99d043d323285c718b8ddc4d7} 
+{\bfseries test\+\_\+fonctions.\+f3} = \mbox{\hyperlink{classsyntax_1_1BoolOpF}{Bool\+OpF}}(\mbox{\hyperlink{classsyntax_1_1Disj}{Disj}}(), \mbox{[}A, \mbox{\hyperlink{classsyntax_1_1NotF}{NotF}}(B)\mbox{]})
+\item 
+\Hypertarget{test__fonctions_8py_aedbc0649f85d3b1a115ce7b20ac8fb29}\label{test__fonctions_8py_aedbc0649f85d3b1a115ce7b20ac8fb29} 
+{\bfseries test\+\_\+fonctions.\+f4} = \mbox{\hyperlink{classsyntax_1_1BoolOpF}{Bool\+OpF}}(\mbox{\hyperlink{classsyntax_1_1Conj}{Conj}}(), \mbox{[}A, f3\mbox{]})
+\item 
+list \mbox{\hyperlink{test__fonctions_8py_aeecc8c62184d82c78cc0fd20329b8fd7}{test\+\_\+fonctions.\+list\+\_\+solve}}
+\item 
+\Hypertarget{test__fonctions_8py_a1943c43773b7bede050a20b60aa4b04a}\label{test__fonctions_8py_a1943c43773b7bede050a20b60aa4b04a} 
+list {\bfseries test\+\_\+fonctions.\+f} = list\+\_\+solve\mbox{[}i\mbox{]}
+\item 
+\Hypertarget{test__fonctions_8py_ab7a760cf3332021f9fc5b8dd64e4867a}\label{test__fonctions_8py_ab7a760cf3332021f9fc5b8dd64e4867a} 
+{\bfseries test\+\_\+fonctions.\+verbosity}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Implémentation des tests fonctions logiques. 
+
+\begin{DoxyAuthor}{Author}
+Lamon Salley 
+\end{DoxyAuthor}
+\begin{DoxyDate}{Date}
+2026 
+\end{DoxyDate}
+
+
+\doxysubsection{Variable Documentation}
+\Hypertarget{test__fonctions_8py_a0891d4f0770aa66d5146649ac3a3fdb4}\label{test__fonctions_8py_a0891d4f0770aa66d5146649ac3a3fdb4} 
+\index{test\_fonctions.py@{test\_fonctions.py}!env\_test@{env\_test}}
+\index{env\_test@{env\_test}!test\_fonctions.py@{test\_fonctions.py}}
+\doxysubsubsection{\texorpdfstring{env\_test}{env\_test}}
+{\footnotesize\ttfamily dict test\+\_\+fonctions.\+env\+\_\+test}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ =\ \ \{}
+\DoxyCodeLine{00002\ \ \ \ \ \textcolor{stringliteral}{"{}a"{}}:\ 10.0,}
+\DoxyCodeLine{00003\ \ \ \ \ \textcolor{stringliteral}{"{}b"{}}:\ 20.0,\ \textcolor{comment}{\#\ a\ <\ b\ est\ Vrai}}
+\DoxyCodeLine{00004\ \ \ \ \ \textcolor{stringliteral}{"{}p"{}}:\ 5.0,}
+\DoxyCodeLine{00005\ \ \ \ \ \textcolor{stringliteral}{"{}q"{}}:\ 5.0,\ \ \textcolor{comment}{\#\ p\ =\ q\ est\ Vrai}}
+\DoxyCodeLine{00006\ \ \ \ \ \textcolor{stringliteral}{"{}m"{}}:\ 100.0,}
+\DoxyCodeLine{00007\ \ \ \ \ \textcolor{stringliteral}{"{}n"{}}:\ 1.0,\ \ \textcolor{comment}{\#\ m\ <\ n\ est\ Faux}}
+\DoxyCodeLine{00008\ \}}
+
+\end{DoxyCode}
+\Hypertarget{test__fonctions_8py_a281f5920bca29f2185a65f0fda1f090c}\label{test__fonctions_8py_a281f5920bca29f2185a65f0fda1f090c} 
+\index{test\_fonctions.py@{test\_fonctions.py}!list\_formula@{list\_formula}}
+\index{list\_formula@{list\_formula}!test\_fonctions.py@{test\_fonctions.py}}
+\doxysubsubsection{\texorpdfstring{list\_formula}{list\_formula}}
+{\footnotesize\ttfamily list test\+\_\+fonctions.\+list\+\_\+formula}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ =\ \ [}
+\DoxyCodeLine{00002\ \ \ \ \ BoolOpF(Conj(),\ [ltf(\textcolor{stringliteral}{"{}a"{}},\textcolor{stringliteral}{"{}b"{}}),\ eqf(\textcolor{stringliteral}{"{}c"{}},\textcolor{stringliteral}{"{}d"{}})]),}
+\DoxyCodeLine{00003\ \ \ \ \ BoolOpF(Disj(),\ [eqf(\textcolor{stringliteral}{"{}x"{}},\textcolor{stringliteral}{"{}y"{}}),\ ltf(\textcolor{stringliteral}{"{}y"{}},\textcolor{stringliteral}{"{}z"{}}),\ eqf(\textcolor{stringliteral}{"{}z"{}},\textcolor{stringliteral}{"{}x"{}})]),}
+\DoxyCodeLine{00004\ \ \ \ \ BoolOpF(Conj(),\ [BoolOpF(Conj(),\ [ltf(\textcolor{stringliteral}{"{}p"{}},\textcolor{stringliteral}{"{}q"{}}),\ eqf(\textcolor{stringliteral}{"{}q"{}},\textcolor{stringliteral}{"{}r"{}})]),\ ltf(\textcolor{stringliteral}{"{}r"{}},\textcolor{stringliteral}{"{}s"{}})]),}
+\DoxyCodeLine{00005\ \ \ \ \ eqf(\textcolor{stringliteral}{"{}a"{}},\textcolor{stringliteral}{"{}b"{}}),}
+\DoxyCodeLine{00006\ \ \ \ \ allq(\textcolor{stringliteral}{"{}x"{}},\ eqf(\textcolor{stringliteral}{"{}x"{}},\textcolor{stringliteral}{"{}x"{}}))}
+\DoxyCodeLine{00007\ ]}
+
+\end{DoxyCode}
+\Hypertarget{test__fonctions_8py_aeecc8c62184d82c78cc0fd20329b8fd7}\label{test__fonctions_8py_aeecc8c62184d82c78cc0fd20329b8fd7} 
+\index{test\_fonctions.py@{test\_fonctions.py}!list\_solve@{list\_solve}}
+\index{list\_solve@{list\_solve}!test\_fonctions.py@{test\_fonctions.py}}
+\doxysubsubsection{\texorpdfstring{list\_solve}{list\_solve}}
+{\footnotesize\ttfamily list test\+\_\+fonctions.\+list\+\_\+solve}
+
+{\bfseries Initial value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ =\ \ [}
+\DoxyCodeLine{00002\ \ \ \ \ \textcolor{comment}{\#\ ∃x\ (x\ <\ x)\ -\/>\ Faux}}
+\DoxyCodeLine{00003\ \ \ \ \ exq(\textcolor{stringliteral}{"{}x"{}},\ ltf(\textcolor{stringliteral}{"{}x"{}},\ \textcolor{stringliteral}{"{}x"{}})),}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \ \ \ \ \textcolor{comment}{\#\ ∀x\ (x=x)\ -\/>\ Vrai\ (représenté\ par\ ¬∃x\ ¬(x=x))}}
+\DoxyCodeLine{00006\ \ \ \ \ allq(\textcolor{stringliteral}{"{}x"{}},\ eqf(\textcolor{stringliteral}{"{}x"{}},\ \textcolor{stringliteral}{"{}x"{}})),}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \ \ \ \ \textcolor{comment}{\#\ Densité:\ ∀x,z\ (x<z\ -\/>\ ∃y\ (x<y\ ∧\ y<z))\ -\/>\ Vrai}}
+\DoxyCodeLine{00009\ \ \ \ \ allq(\textcolor{stringliteral}{"{}x"{}},\ allq(\textcolor{stringliteral}{"{}z"{}},\ impl(ltf(\textcolor{stringliteral}{"{}x"{}},\ \textcolor{stringliteral}{"{}z"{}}),\ exq(\textcolor{stringliteral}{"{}y"{}},\ conj(ltf(\textcolor{stringliteral}{"{}x"{}},\ \textcolor{stringliteral}{"{}y"{}}),\ ltf(\textcolor{stringliteral}{"{}y"{}},\ \textcolor{stringliteral}{"{}z"{}}))))))}
+\DoxyCodeLine{00010\ ]}
+
+\end{DoxyCode}

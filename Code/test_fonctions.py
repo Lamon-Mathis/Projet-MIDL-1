@@ -1,4 +1,9 @@
-
+##
+# @file test_fonctions.py
+# @brief Implémentation des tests fonctions logiques
+# @author Lamon Salley
+# @date 2026
+#
 from fonctions import *
 from syntax import *
 
@@ -42,25 +47,41 @@ for i in range(len(list_formula)):
 #=======================================================================
 # Tests de eval
 #=======================================================================
+env_test = {
+    "a": 10.0,
+    "b": 20.0, # a < b est Vrai
+    "p": 5.0,
+    "q": 5.0,  # p = q est Vrai
+    "m": 100.0,
+    "n": 1.0,  # m < n est Faux
+}
+
 list_formula = [
-    ConstF(True),
-    eqf("a","a"),
-    eqf("a","b"),
-    BoolOpF(Conj(), [ltf("a","b"), eqf("a","a")]),
-    BoolOpF(Disj(), [eqf("p","q"), ltf("m","n")]),
-    allq("x", ltf("x","y")),
+    ConstF(True),                                     # 1. Constante
+    eqf("a","a"),                                     # 2. Réflexivité (10 = 10)
+    eqf("a","b"),                                     # 3. Égalité fausse (10 = 20)
+    BoolOpF(Conj(), [ltf("a","b"), eqf("a","a")]),    # 4. ET (Vrai et Vrai)
+    BoolOpF(Disj(), [eqf("p","q"), ltf("m","n")]),    # 5. OU (Vrai ou Faux) -> Vrai
+    allq("x", ltf("x","y")),                          # 6. Quantificateur (Doit échouer)
 ]
 
 print("\n________________ Tests eval ________________\n")
+print(f"Environnement de test : {env_test}\n")
+
 for i in range(len(list_formula)):
     formula = list_formula[i]
     print("TEST "+ str(i+1))
     try:
-        print("Formule : " + display_formula(formula))
-        print("Évaluation : " + str(eval(formula))+"\n")
-    except Exception as e:
+        print("Formule    : " + display_formula(formula))
         
-        print("Test eval - Attendu ERREUR :", e,"\n")
+        # On passe l'environnement env_test à la fonction eval
+        res = eval(formula, env_test) 
+        
+        print("Évaluation : " + str(res) + "\n")
+        
+    except Exception as e:
+        # Ici on s'attend à une erreur pour le TEST 6 (Quantificateur)
+        print("Test eval - Résultat (Attendu pour quantificateurs) : ERREUR ->", e, "\n")
 
 print("\n________________ Tests nnf et dnf ________________\n")
 A = ComparF("A", Eq(), "B")

@@ -1,11 +1,22 @@
+##
+# @file fonctions.py
+# @brief Implémentation des fonctions logiques et de l'algorithme d'élimination des quantificateurs.
+# @author Lamon Salley
+# @date 2026
+#
+
 # fonctions.py
 from syntax import *
 
 #=======================================================================
 # fonction str_list
 #=======================================================================
-# @brief cette fonction retourne une représentation en chaîne de caractères
+##@brief cette fonction retourne une représentation en chaîne de caractères
 #   d'une formule logique.
+# CHOIX D'IMPLEMENTATION :
+# On se base alors sur ___str___ mais on ajoute la possibiliter de creer
+# des parametres simplement comme par exemple "implication_mode" qui permet 
+# d'obtenir un affichage plus fin
 #   @param formula : Formula
 #   @param implication_mode : bool
 #   @return str
@@ -38,7 +49,7 @@ def display_formula (formula: Formula, implication_mode: bool = True):
 #=======================================================================    
 # fonction dualOp et dual
 #=======================================================================
-# @brief cette fonction retourne la formule obtenue en remplaçant
+##@brief cette fonction retourne la formule obtenue en remplaçant
 #   toutes les conjonctions par des disjonctions et réciproquement,
 #
 #   @param formula : Formula
@@ -52,7 +63,7 @@ def dualOp (formula: Formula):
     
     raise ValueError("type of formula is not allowed")
 
-# @brief cette fonction retourne la formule duale de la formule donnée
+##@brief cette fonction retourne la formule duale de la formule donnée
 #   en remplaçant toutes les conjonctions par des disjonctions et réciproquement,
 #   et en remplaçant chaque sous-formule par sa duale.
 #   @param formula : Formula
@@ -76,32 +87,37 @@ def dual(formula : Formula | tuple ):
 #=======================================================================    
 # fonction eval
 #=======================================================================
-# @brief cette fonction evalue une une formule sans quantificateurs (attention aux comparaisons)
-#   @param f : Formula
-#   @return bool
-#   @raise ValueError Formula with quantifiers is not allowed
-def eval(formula: Formula) -> bool:
-    
-    if isinstance(formula, ConstF ):
+##@brief Évalue la valeur de vérité d'une formule sans quantificateurs dans un environnement donné.
+#   Cette fonction vérifie si une formule est Vraie ou Fausse en remplaçant 
+#   les variables par les valeurs fournies dans le dictionnaire 'env'.
+#   De plus elle fait bien attention a tester les valeurs des variables et non pas leurs noms comme dans la version précédente.
+#
+#
+#   @param formula : Formula - La formule logique à évaluer (doit être sans quantificateurs).
+#   @param env : dict[str, float] - (Optionnel) Dictionnaire associant les noms des variables 
+#                à leurs valeurs numériques (ex: {"x": 1.0, "y": 2.5}). 
+#                Requis si la formule contient des variables.
+#   @return bool - True si la formule est satisfaite, False sinon.
+def eval(formula: Formula, env: dict[str, float] = None) -> bool:
+    if env is None:
+        env = {}
+        
+    if isinstance(formula, ConstF):
         return formula.val
     
-    elif isinstance(formula, ComparF ):
+    elif isinstance(formula, ComparF):
+        # On récupère la valeur "numérique" des variables dans l'environnement
+        # Si la variable n'est pas dans l'env, on ne peut pas évaluer
+        val_left = env.get(formula.left, formula.left)
+        val_right = env.get(formula.right, formula.right)
         
         if isinstance(formula.op, Eq):
-            return (formula.left == formula.right)
-        else:
-            return (formula.left < formula.right)
-        
+            return val_left == val_right
+        else: # Lt
+            return val_left < val_right
+            
     elif isinstance(formula, NotF):
-        return (not eval(formula.sub))
-    
-    elif isinstance(formula, BoolOpF) :
-        
-        if isinstance(formula.op, Conj): #conseil de la partie B2
-            return all(eval(e) for e in formula.elements)
-        
-        else:
-            return any(eval(e) for e in formula.elements)
+        return not eval(formula.sub, env)
     
     else :
         raise ValueError("Formula with quantifiers is not allowed")
@@ -110,8 +126,18 @@ def eval(formula: Formula) -> bool:
 #=======================================================================
 # fonction nnf
 #=======================================================================
-# @brief transforme une formule en forme normale négative (NNF)
-# c’est-à-dire que les négations ne portent que sur des formules atomiques.
+#    @brief (Version formelle) Transforme une formule en Forme Normale Négative (NNF).
+#
+#    Une formule est en NNF si les négations ne portent que sur des formules atomiques 
+#    (variables ou comparaisons). Cette fonction procède récursivement en testant 
+#    les différents opérateurs pour pousser les négations vers les feuilles de l'arbre.
+#
+#    @note Cette version est théorique. Pour le solveur complet incluant les quantificateurs, 
+#    voir la fonction push_negation.
+#
+#    @param formula : Formula - La formule logique à transformer.
+#    @return Formula - La formule équivalente mise sous forme NNF.
+#    @raise ValueError - Si la formule contient des quantificateurs non supportés.
 #=======================================================================
 def nnf(formula: Formula) -> Formula:
     if isinstance(formula, (ConstF, ComparF)):
@@ -323,6 +349,13 @@ def remove_forall(f: Formula) -> Formula:
         return NotF(remove_forall(f.sub))
     return f
 
+#=======================================================================
+# fonction push_negation
+#=======================================================================
+##@brief version utile et complete de nnf
+# qui transforme une formule en forme normale négative (NNF)
+# c’est-à-dire que les négations ne portent que sur des formules atomiques.
+# ici on teste pas a pas les différents opérateurs pour obtenir récursivement une NNF
 def push_negation(f: Formula) -> Formula:
     """Pousse les négations vers les feuilles."""
     if isinstance(f, NotF):
@@ -352,7 +385,19 @@ def push_negation(f: Formula) -> Formula:
         return QuantifF(f.q, f.var, push_negation(f.body))
     
     return f
-
+#=======================================================================
+# fonction to_prenex
+#=======================================================================
+##@brief Transforme la formule en forme Prénexe (tous les quantificateurs au début).
+#   Cette fonction fait remonter les quantificateurs à travers les opérateurs booléens.
+#   
+#   CHOIX D'IMPLEMENTATION :
+#   Si un conflit de nom de variable survient lors de la remontée,
+#   la variable quantifiée est renommée pour éviter un conflit de nommage
+#   accidentelle des variables libres de l'autre branche.
+#
+#   @param f : Formula
+#   @return Formula (forme prénexe)
 def to_prenex(f: Formula) -> Formula:
     """
     Forme Prénexe adaptée à la structure BoolOpF([A, B]).
@@ -409,32 +454,69 @@ def to_prenex(f: Formula) -> Formula:
 # 4. DNF et Élimination
 # -----------------------------------------------------------------------------
 
+#=======================================================================
+# fonction to_dnf_list
+#=======================================================================
+##@brief Convertit une formule sans quantificateurs en une structure de liste de clauses (DNF).
+#
+#   CHOIX D'IMPLEMENTATION :
+#   Contrairement à la fonction 'dnf' classique qui retourne un objet 'Formula' (arbre syntaxique),
+#   cette fonction retourne une structure de données spécifique : list[list[Formula]]
+#   - La liste principale représente une DISJONCTION (OU).
+#   - Chaque sous-liste interne représente une CONJONCTION (ET).
+#
+#   Pourquoi ? Pour que le traitement suivant 'eliminate_existential'
+#   soit plus simple et compréhensible
+#
+#   @param f : Formula - La formule à convertir (doit idéalement être déjà en NNF).
+#   @return list[list[Formula]]
 def to_dnf_list(f: Formula) -> list[list[Formula]]:
-    """Transforme en DNF (liste de listes)."""
-    if isinstance(f, ConstF):
-        return [[f]] if f.val else []
-    elif isinstance(f, ComparF):
+    
+    if isinstance(f, (ConstF, ComparF)):
         return [[f]]
+
+    elif isinstance(f, NotF):
+        return [[f]] 
+
     elif isinstance(f, BoolOpF):
-        # On suppose binaire car issu de conj/disj
+    
         if len(f.elements) >= 2:
-            left_dnf = to_dnf_list(f.elements[0])
-            right_dnf = to_dnf_list(f.elements[1]) 
+            # Appel récursif sur les sous-formules
+            left_dnf = to_dnf_list(f.elements[0])#  On prend les deux premiers éléments 
+            right_dnf = to_dnf_list(f.elements[1])# (structure binaire implicite ou réduction)
             
+            # Cas OU
             if isinstance(f.op, Disj):
+                # [[A], [B]] OU [[C]] devient [[A], [B], [C]]
                 return left_dnf + right_dnf
+            
+            # Cas ET
             elif isinstance(f.op, Conj):
+                # (A ∨ B) ∧ (C ∨ D) devient (A∧C) ∨ (A∧D) ∨ (B∧C) ∨ (B∧D)
                 result = []
-                for l_clause in left_dnf:
-                    for r_clause in right_dnf:
+                for l_clause in left_dnf:       # Pour chaque clause de gauche
+                    for r_clause in right_dnf:  # Pour chaque clause de droite
+                        # On fusionne les deux listes (conjonction)
                         result.append(l_clause + r_clause)
                 return result
     return [[f]]
 
+#=======================================================================
+# fonction eliminate_existential
+#=======================================================================
+##@brief Élimine une variable quantifiée existentiellement (ex: ∃x) d'une liste de contraintes.
+#
+#   CHOIX D'IMPLEMENTATION avec conseil d'IA : 'Fourier-Motzkin'
+#   1 : on trie les formules
+#   2 : on ajoute des contreintes celons les cas pour obtenir les variables a supprimer
+#
+#   @param var : str - Le nom de la variable à éliminer.
+#   @param conjunction : list[Formula] - Liste de littéraux représentant un ET logique.
+#   @return Formula - La formule résultante équivalente (sans 'var').
 def eliminate_existential(var: str, conjunction: list[Formula]) -> Formula:
     lower, upper, equalities, others = [], [], [], []
     
-    for f in conjunction:
+    for f in conjunction: # on trie les formules
         if isinstance(f, ConstF):
             if not f.val: return ConstF(False)
             continue
@@ -454,7 +536,7 @@ def eliminate_existential(var: str, conjunction: list[Formula]) -> Formula:
             elif r == var: lower.append(l)
             else: others.append(f)
 
-    if equalities:
+    if equalities: # on substitue dans toutes les autres contraintes
         w0 = equalities[0]
         new_c = []
         for w in equalities[1:]: new_c.append(eqf(w, w0))
@@ -467,6 +549,10 @@ def eliminate_existential(var: str, conjunction: list[Formula]) -> Formula:
         return res
 
     if lower and upper:
+        # soit :(l < x < u)
+        #        la propriété de densité permet d'éliminer x en 
+        #        imposant la condition (l < u). On génère cette contrainte pour TOUTES les 
+        #        paires possibles (lower, upper)
         new_c = [ltf(u, v) for u in lower for v in upper]
         final = new_c + others
         if not final: return ConstF(True)
@@ -474,7 +560,7 @@ def eliminate_existential(var: str, conjunction: list[Formula]) -> Formula:
         for x in final[1:]: res = conj(res, x)
         return res
 
-    if not others: return ConstF(True)
+    if not others: return ConstF(True) # variable supprimé
     res = others[0]
     for x in others[1:]: res = conj(res, x)
     return res
